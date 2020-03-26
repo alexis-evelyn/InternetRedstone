@@ -1,5 +1,5 @@
-name: PaperMQTT
+name: InternetRedstone
 version: ${project.version}
-main: me.alexisevelyn.papermqtt.Main
+main: me.alexisevelyn.internetredstone.Main
 api-version: 1.13
 load: STARTUP

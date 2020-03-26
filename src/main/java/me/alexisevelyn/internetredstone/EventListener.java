@@ -1,4 +1,4 @@
-package me.alexisevelyn.papermqtt;
+package me.alexisevelyn.internetredstone;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -75,7 +75,6 @@ public class EventListener implements Listener {
         BlockState snapshot = event.getClickedBlock().getState();
 
         if (isSign(snapshot.getBlock().getType())) {
-            // TODO: CraftBlock Cannot Be Cast To Sign
             Sign sign;
             try {
 //                sign = (Sign) snapshot.getBlock();
@@ -149,35 +148,51 @@ public class EventListener implements Listener {
         int snapX, snapY, snapZ = 0;
         World world = snapshot.getWorld();
 
-        snapX = snapshot.getX();
-        snapY = snapshot.getY();
-        snapZ = snapshot.getZ();
+        snapX = snapshot.getLocation().getBlockX();
+        snapY = snapshot.getLocation().getBlockY();
+        snapZ = snapshot.getLocation().getBlockZ();
 
         BlockState surroundingBlock;
         Powerable powerable;
         AnaloguePowerable aPowerable;
 
+        this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "About To Looping!!!");
         for (int x = snapX - 1; x <= snapX + 1; x++) {
             for (int z = snapZ - 1; z <= snapZ + 1; z++) {
+
+                // Prevent Powering Corners - Still Needs Some Work. Doesn't Power Along X-Axis Now
+//                if (x != snapX && z != snapZ)
+//                    break;
+
+//                this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Looping: "
+//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
+//                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + x
+//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
+//                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + snapY
+//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
+//                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + z
+//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
+
                 surroundingBlock = world.getBlockAt(x, snapY, z).getState();
 
-                if (surroundingBlock instanceof Powerable) {
+                if (surroundingBlock.getBlockData() instanceof Powerable) {
                     // Note: Blocks that Can Take Redstone, But Have No Signal Strength
-                    powerable = (Powerable) surroundingBlock;
-                    powerable.setPowered(true);
+                    powerable = (Powerable) surroundingBlock.getBlockData();
 
-                    surroundingBlock = (BlockState) powerable;
+                    powerable.setPowered(!powerable.isPowered());
+
+                    surroundingBlock.setBlockData(powerable);
                     surroundingBlock.update();
 
                     this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Powering Powerable!!!");
-                } else if (surroundingBlock instanceof AnaloguePowerable) {
+                } else if (surroundingBlock.getBlockData() instanceof AnaloguePowerable) {
                     // Note: Blocks that Can Take Redstone, And Have Signal Strength
                     // Currently, Daylight Detector and Redstone Wire
-                    aPowerable = (AnaloguePowerable) surroundingBlock;
+                    aPowerable = (AnaloguePowerable) surroundingBlock.getBlockData();
 
                     aPowerable.setPower(10);
 
-                    surroundingBlock = (BlockState) aPowerable;
+                    surroundingBlock.setBlockData(aPowerable);
                     surroundingBlock.update();
 
                     this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Powering AnaloguePowerable!!!");

@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.alexisevelyn</groupId>
-    <artifactId>papermqtt</artifactId>
+    <artifactId>internetredstone</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>PaperMQTT</name>
+    <name>InternetRedstone</name>
 
     <properties>
         <java.version>1.8</java.version>

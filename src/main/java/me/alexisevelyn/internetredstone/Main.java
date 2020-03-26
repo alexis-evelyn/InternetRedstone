@@ -1,4 +1,4 @@
-package me.alexisevelyn.papermqtt;
+package me.alexisevelyn.internetredstone;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
