@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Lectern;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.AnaloguePowerable;
 import org.bukkit.block.data.Powerable;
@@ -29,7 +30,7 @@ public class EventListener implements Listener {
         BlockState snapshot = event.getBlock().getState();
 
         // TODO: Get Redstone Power Level Update For Signs
-        if (isSign(snapshot.getBlock().getType())) {
+        if (snapshot instanceof Sign) {
             Sign sign = (Sign) snapshot;
 
 //            this.main.getLogger().info(ChatColor.DARK_GREEN + "RPU: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
@@ -37,22 +38,6 @@ public class EventListener implements Listener {
             sign.update();
         }
     }
-
-//    @EventHandler
-//    public void onRedstoneUpdate(BlockRedstoneEvent event) {
-//        BlockState snapshot = event.getBlock().getState();
-//
-//        // TODO: Get Redstone Power Level Update For Signs
-//        if (isSign(snapshot.getBlock().getType())) {
-//            Sign sign = (Sign) snapshot.getBlock();
-//
-//            this.main.getLogger().info(ChatColor.DARK_GREEN + "RPU: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-//            sign.setLine(1, ChatColor.DARK_GREEN + "RPU: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-//            sign.update();
-//        } else {
-//            this.main.getLogger().info(ChatColor.DARK_GREEN + "Redstone Update Block: " + ChatColor.DARK_RED + snapshot.getBlock().getType());
-//        }
-//    }
 
 //    @EventHandler
 //    public void onSignChange(SignChangeEvent event) {
@@ -65,20 +50,19 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onSignClick(PlayerInteractEvent event) {
+        // Block Doesn't Exist or Is Invalid
+        if (!event.hasBlock() || event.getClickedBlock() == null)
+            return;
+
+        // Not A Right Click
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
-        if (!event.hasBlock())
-            return;
-        if (event.getClickedBlock() == null)
             return;
 
         BlockState snapshot = event.getClickedBlock().getState();
 
-        if (isSign(snapshot.getBlock().getType())) {
+        if (snapshot instanceof Sign) {
             Sign sign;
             try {
-//                sign = (Sign) snapshot.getBlock();
-//                sign = (Sign) event.getClickedBlock();
                 sign = (Sign) snapshot;
 
                 updateSurroundingBlocks(snapshot);
@@ -118,28 +102,6 @@ public class EventListener implements Listener {
         }
     }
 
-    public boolean isSign(Material object) {
-        // TODO: Read Sign Types From Config
-        // TODO: Relocate Function to Another Class (A General Purpose Sign Handling Class For Parsing/Handling Sign Data)
-
-        if (object == Material.ACACIA_SIGN || object == Material.ACACIA_WALL_SIGN) {
-            return true;
-        } else if (object == Material.BIRCH_SIGN || object == Material.BIRCH_WALL_SIGN) {
-            return true;
-        } else if (object == Material.DARK_OAK_SIGN || object == Material.DARK_OAK_WALL_SIGN) {
-            return true;
-        } else if (object == Material.JUNGLE_SIGN || object == Material.JUNGLE_WALL_SIGN) {
-            return true;
-        } else if (object == Material.OAK_SIGN || object == Material.OAK_WALL_SIGN) {
-            return true;
-        } else //noinspection RedundantIfStatement
-            if (object == Material.SPRUCE_SIGN || object == Material.SPRUCE_WALL_SIGN) {
-            return true;
-        }
-
-        return false;
-    }
-
     public void updateSurroundingBlocks(BlockState snapshot) {
         // TODO: Take World Border Into Account
         // TODO: Make Sure To Emulate Vanilla Redstone Mechanics
@@ -156,13 +118,12 @@ public class EventListener implements Listener {
         Powerable powerable;
         AnaloguePowerable aPowerable;
 
-        this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "About To Looping!!!");
         for (int x = snapX - 1; x <= snapX + 1; x++) {
             for (int z = snapZ - 1; z <= snapZ + 1; z++) {
 
-                // Prevent Powering Corners - Still Needs Some Work. Doesn't Power Along X-Axis Now
-//                if (x != snapX && z != snapZ)
-//                    break;
+                // TODO: Prevent Powering Corners - Still Needs Some Work. Doesn't Power Along X-Axis Now
+                if (x != snapX && z != snapZ)
+                    continue;
 
 //                this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Looping: "
 //                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
@@ -183,19 +144,21 @@ public class EventListener implements Listener {
 
                     surroundingBlock.setBlockData(powerable);
                     surroundingBlock.update();
-
-                    this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Powering Powerable!!!");
                 } else if (surroundingBlock.getBlockData() instanceof AnaloguePowerable) {
+                    // TODO: Fix This To Allow Non-Binary Data With Ease Of Access
+                    // Note: I may use a lectern with a signed book and a specific page to handle this. You'll just need a comparator to use it.
+                    // Note: Due to Block Updating, This Cannot Create A Proper Redstone Line For Analog Signal Strength :(
+                    // If Anyone Has A Workaround That Allows Strength 0-15 To Be Emitted From The Redstone Wire Next To The Sign
+                    // Please Let Me Know or Submit a Pull Request With The Fix!!! Thanks!!!
+
                     // Note: Blocks that Can Take Redstone, And Have Signal Strength
                     // Currently, Daylight Detector and Redstone Wire
-                    aPowerable = (AnaloguePowerable) surroundingBlock.getBlockData();
-
-                    aPowerable.setPower(10);
-
-                    surroundingBlock.setBlockData(aPowerable);
-                    surroundingBlock.update();
-
-                    this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Powering AnaloguePowerable!!!");
+//                    aPowerable = (AnaloguePowerable) surroundingBlock.getBlockData();
+//
+//                    aPowerable.setPower(10);
+//
+//                    surroundingBlock.setBlockData(aPowerable);
+//                    surroundingBlock.update();
 
                     // Useful Methods
 //                    aPowerable.getMaximumPower();
