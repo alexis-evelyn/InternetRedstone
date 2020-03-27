@@ -2,7 +2,6 @@ package me.alexisevelyn.internetredstone.utilities;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.Objects;
 

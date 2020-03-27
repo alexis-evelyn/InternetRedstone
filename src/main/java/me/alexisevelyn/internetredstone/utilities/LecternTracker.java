@@ -1,18 +1,9 @@
 package me.alexisevelyn.internetredstone.utilities;
 
-import com.hivemq.client.internal.mqtt.message.disconnect.MqttDisconnectBuilder;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.datatypes.MqttUtf8String;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
-import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperties;
-import com.hivemq.client.mqtt.mqtt5.message.disconnect.Mqtt5Disconnect;
-import com.hivemq.client.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectBuilder;
-import com.hivemq.client.mqtt.mqtt5.message.disconnect.Mqtt5DisconnectReasonCode;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import org.bukkit.Location;
 
-import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 public class LecternTracker {
@@ -20,6 +11,8 @@ public class LecternTracker {
     Location location;
     // Used to track the player who owns the lectern. Will aid in allowing using that player's settings.
     UUID player;
+    // Used to prevent duplicate signals from being sent
+    Integer lastKnownSignal;
 
     MQTTClient client;
 
@@ -43,5 +36,13 @@ public class LecternTracker {
 
     public void cleanup() {
         client.disconnect();
+    }
+
+    public Integer getLastKnownPower() {
+        return lastKnownSignal;
+    }
+
+    public void setLastKnownPower(Integer lastKnownSignal) {
+        this.lastKnownSignal = lastKnownSignal;
     }
 }
