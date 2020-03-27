@@ -45,7 +45,7 @@ public class RedstoneUpdate implements Listener {
             LecternTracker tracker = this.tracker; // TODO: Retrieve Specific Tracker From Another Class
 
             // Prevent Sending Duplicate Redstone Power Levels
-            if (snapshot.getBlock().getBlockPower() == tracker.getLastKnownPower())
+            if (lectern.getBlock().getBlockPower() == tracker.getLastKnownPower())
                 return;
 
             // Lecterns should only have 1 slot, but that may change in the future.
@@ -56,6 +56,7 @@ public class RedstoneUpdate implements Listener {
             if (lecternSize == 0)
                 return;
 
+            // Grabs item from first slot - Will be null if none in slot
             ItemStack book = lecternItems[0];
 
             // Not An Expected Book Or No Book - No Need For Further Processing
