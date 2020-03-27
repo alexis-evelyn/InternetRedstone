@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone;
 
+import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -20,9 +21,11 @@ import java.util.Arrays;
 
 public class EventListener implements Listener {
     Main main;
+    MQTTClient mqttClient;
 
-    public EventListener(Main passed) {
-        this.main = passed;
+    public EventListener(Main main, MQTTClient mqttClient) {
+        this.main = main;
+        this.mqttClient = mqttClient;
     }
 
     @EventHandler
@@ -65,16 +68,24 @@ public class EventListener implements Listener {
             try {
                 sign = (Sign) snapshot;
 
-                updateSurroundingBlocks(snapshot);
+//                updateSurroundingBlocks(snapshot);
+
+                Integer redstonePower = snapshot.getBlock().getBlockPower();
+                byte[] payload = redstonePower.toString().getBytes();
+//                Mqtt5AsyncClient client = this.mqttClient.getClient(sign.getLocation());
+
+                // I'm cheesing it to make sure that the MQTT part works. I need to fix the HashMap so I can lookup values by location.
+                Mqtt5AsyncClient client = this.mqttClient.registerClient(event.getPlayer().getUniqueId(), sign.getLocation());
+                this.mqttClient.sendMessage(client, event.getPlayer().getUniqueId(), payload);
 
                 event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "RPRC: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
 
                 sign.setLine(1, ChatColor.DARK_GREEN + "RPRC: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
                 sign.update(); // Attempts To Save Modified Sign Data From Snapshot - Fails If Sign Is No Longer In Same State As When Captured
-            } catch (ClassCastException exception) {
-                event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "ClassCastException: " + ChatColor.DARK_RED + exception.getMessage());
+            } catch (Exception exception) {
+                event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Exception: " + ChatColor.DARK_RED + exception.getMessage());
 
-                this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "ClassCastException: "
+                this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Exception: "
                             + ChatColor.DARK_RED + "" + ChatColor.BOLD + exception.getMessage());
 
                 this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Clicked Block: "

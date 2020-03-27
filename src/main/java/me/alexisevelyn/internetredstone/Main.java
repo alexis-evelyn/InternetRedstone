@@ -7,7 +7,9 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        getServer().getPluginManager().registerEvents(new EventListener(this), this);
+        MQTTClient mqttClient = new MQTTClient(this);
+
+        getServer().getPluginManager().registerEvents(new EventListener(this, mqttClient), this);
     }
 
     @Override
