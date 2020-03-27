@@ -37,15 +37,21 @@ public class Logger {
 
     public static void info(String message) {
         Bukkit.getLogger().info(ChatColor.DARK_PURPLE
+                + "["
                 + getPluginPrefix()
+                + "]"
                 + ChatColor.RESET
+                + " "
                 + message);
     }
 
     public static void severe(String message) {
         Bukkit.getLogger().severe(ChatColor.DARK_PURPLE
+                + "["
                 + getPluginPrefix()
+                + "]"
                 + ChatColor.RESET
+                + " "
                 + message);
     }
 }
