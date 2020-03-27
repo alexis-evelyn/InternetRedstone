@@ -9,6 +9,7 @@ import org.bukkit.block.Lectern;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.AnaloguePowerable;
 import org.bukkit.block.data.Powerable;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -16,8 +17,12 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.LecternInventory;
+import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 public class EventListener implements Listener {
     Main main;
@@ -32,151 +37,64 @@ public class EventListener implements Listener {
     public void onRedstoneUpdate(BlockPhysicsEvent event) {
         BlockState snapshot = event.getBlock().getState();
 
-        // TODO: Get Redstone Power Level Update For Signs
-        if (snapshot instanceof Sign) {
-            Sign sign = (Sign) snapshot;
+        // TODO: Figure out why turning redstone off from a distance spams the MQTT Log!!!
+        if (snapshot instanceof Lectern) {
+            Lectern lectern = (Lectern) snapshot;
+            LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
 
-//            this.main.getLogger().info(ChatColor.DARK_GREEN + "RPU: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-            sign.setLine(1, ChatColor.DARK_GREEN + "RP: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-            sign.update();
-        }
-    }
+            // Lecterns should only have 1 slot, but that may change in the future.
+            ItemStack[] lecternItems = inventory.getContents();
+            int lecternSize = lecternItems.length;
 
-//    @EventHandler
-//    public void onSignChange(SignChangeEvent event) {
-//        BlockState snapshot = event.getBlock().getState();
-//
-////        event.getPlayer().sendMessage(ChatColor.GOLD + "Redstone Power: " + ChatColor.DARK_GREEN + snapshot.getBlock().getBlockPower());
-//
-//        event.setLine(1, ChatColor.DARK_GREEN + "RP: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-//    }
+            // Something's Wrong With The Lectern - No Need For Further Processing
+            if (lecternSize == 0)
+                return;
 
-    @EventHandler
-    public void onSignClick(PlayerInteractEvent event) {
-        // Block Doesn't Exist or Is Invalid
-        if (!event.hasBlock() || event.getClickedBlock() == null)
-            return;
+            ItemStack book = lecternItems[0];
 
-        // Not A Right Click
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
+            // Not An Expected Book Or No Book - No Need For Further Processing
+            if (book == null || !(book.getItemMeta() instanceof BookMeta))
+                return;
 
-        BlockState snapshot = event.getClickedBlock().getState();
+            BookMeta bookMeta = (BookMeta) book.getItemMeta();
+            //noinspection WrapperTypeMayBePrimitive - For Reason of Need To Convert To Byte[] later on
+            Integer redstonePower = lectern.getBlock().getBlockPower();
 
-        if (snapshot instanceof Sign) {
-            Sign sign;
+            // Note: This Page Check Keeps The Book From Being "Frozen" on the First Page. Page 0 is Page 1 of the Book!!!
+            if (lectern.getPage() == 0) {
+                bookMeta.setPage(1, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                        + "Redstone Power: " + redstonePower);
+
+                book.setItemMeta(bookMeta);
+
+                inventory.setItem(0, book);
+                lectern.update();
+            }
+
             try {
-                sign = (Sign) snapshot;
-
-//                updateSurroundingBlocks(snapshot);
-
-                Integer redstonePower = snapshot.getBlock().getBlockPower();
                 byte[] payload = redstonePower.toString().getBytes();
-//                Mqtt5AsyncClient client = this.mqttClient.getClient(sign.getLocation());
+                UUID alexis_evelyn = UUID.fromString("f3b4e8a4-7f52-4b0a-a18d-1af64935a89f"); // My UUID For Testing
 
-                // I'm cheesing it to make sure that the MQTT part works. I need to fix the HashMap so I can lookup values by location.
-                Mqtt5AsyncClient client = this.mqttClient.registerClient(event.getPlayer().getUniqueId(), sign.getLocation());
-                this.mqttClient.sendMessage(client, event.getPlayer().getUniqueId(), payload);
-
-                event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "RPRC: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-
-                sign.setLine(1, ChatColor.DARK_GREEN + "RPRC: " + ChatColor.DARK_RED + snapshot.getBlock().getBlockPower());
-                sign.update(); // Attempts To Save Modified Sign Data From Snapshot - Fails If Sign Is No Longer In Same State As When Captured
+                Mqtt5AsyncClient client = this.mqttClient.registerClient(alexis_evelyn, lectern.getLocation());
+                this.mqttClient.sendMessage(client, alexis_evelyn, payload);
             } catch (Exception exception) {
-                event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Exception: " + ChatColor.DARK_RED + exception.getMessage());
-
-                this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Exception: "
-                            + ChatColor.DARK_RED + "" + ChatColor.BOLD + exception.getMessage());
-
-                this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Clicked Block: "
-                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + snapshot.getType().toString());
-
-                this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Location: "
-                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + snapshot.getLocation().getBlockX()
-                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + snapshot.getLocation().getBlockY()
-                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + snapshot.getLocation().getBlockZ()
-                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
-
-                this.main.getLogger().severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
-
-                for (StackTraceElement line : exception.getStackTrace()) {
-                    this.main.getLogger().severe(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + line.getLineNumber()
-                            + ChatColor.RED + "" + ChatColor.BOLD + " - "
-                            + ChatColor.DARK_RED + "" + ChatColor.BOLD + line.toString());
-                }
-
-                this.main.getLogger().severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
+                printException(exception);
             }
         }
     }
 
-    public void updateSurroundingBlocks(BlockState snapshot) {
-        // TODO: Take World Border Into Account
-        // TODO: Make Sure To Emulate Vanilla Redstone Mechanics
-        // TODO: Relocate Function to Another Class (A General Purpose Sign Handling Class For Parsing/Handling Sign Data)
+    public void printException(Exception exception) {
+        this.main.getLogger().severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Exception: "
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD + exception.getMessage());
 
-        int snapX, snapY, snapZ = 0;
-        World world = snapshot.getWorld();
+        this.main.getLogger().severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
 
-        snapX = snapshot.getLocation().getBlockX();
-        snapY = snapshot.getLocation().getBlockY();
-        snapZ = snapshot.getLocation().getBlockZ();
-
-        BlockState surroundingBlock;
-        Powerable powerable;
-        AnaloguePowerable aPowerable;
-
-        for (int x = snapX - 1; x <= snapX + 1; x++) {
-            for (int z = snapZ - 1; z <= snapZ + 1; z++) {
-
-                // TODO: Prevent Powering Corners - Still Needs Some Work. Doesn't Power Along X-Axis Now
-                if (x != snapX && z != snapZ)
-                    continue;
-
-//                this.main.getLogger().info(ChatColor.GOLD + "" + ChatColor.BOLD + "Looping: "
-//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-//                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + x
-//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-//                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + snapY
-//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-//                        + ChatColor.DARK_RED + "" + ChatColor.BOLD + z
-//                        + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
-
-                surroundingBlock = world.getBlockAt(x, snapY, z).getState();
-
-                if (surroundingBlock.getBlockData() instanceof Powerable) {
-                    // Note: Blocks that Can Take Redstone, But Have No Signal Strength
-                    powerable = (Powerable) surroundingBlock.getBlockData();
-
-                    powerable.setPowered(!powerable.isPowered());
-
-                    surroundingBlock.setBlockData(powerable);
-                    surroundingBlock.update();
-                } else if (surroundingBlock.getBlockData() instanceof AnaloguePowerable) {
-                    // TODO: Fix This To Allow Non-Binary Data With Ease Of Access
-                    // Note: I may use a lectern with a signed book and a specific page to handle this. You'll just need a comparator to use it.
-                    // Note: Due to Block Updating, This Cannot Create A Proper Redstone Line For Analog Signal Strength :(
-                    // If Anyone Has A Workaround That Allows Strength 0-15 To Be Emitted From The Redstone Wire Next To The Sign
-                    // Please Let Me Know or Submit a Pull Request With The Fix!!! Thanks!!!
-
-                    // Note: Blocks that Can Take Redstone, And Have Signal Strength
-                    // Currently, Daylight Detector and Redstone Wire
-//                    aPowerable = (AnaloguePowerable) surroundingBlock.getBlockData();
-//
-//                    aPowerable.setPower(10);
-//
-//                    surroundingBlock.setBlockData(aPowerable);
-//                    surroundingBlock.update();
-
-                    // Useful Methods
-//                    aPowerable.getMaximumPower();
-//                    aPowerable.getPower();
-//                    aPowerable.setPower(0);
-                }
-            }
+        for (StackTraceElement line : exception.getStackTrace()) {
+            this.main.getLogger().severe(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + line.getLineNumber()
+                    + ChatColor.RED + "" + ChatColor.BOLD + " - "
+                    + ChatColor.DARK_RED + "" + ChatColor.BOLD + line.toString());
         }
+
+        this.main.getLogger().severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
     }
 }
