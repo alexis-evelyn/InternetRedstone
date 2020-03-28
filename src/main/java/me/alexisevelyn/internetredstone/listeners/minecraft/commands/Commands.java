@@ -45,6 +45,8 @@ public class Commands implements CommandExecutor {
         }
 
         for (Location location : trackerMap.keySet()) {
+//            trackerMap.get(location).subscribe();
+
             sender.sendMessage(ChatColor.GOLD + "Registered Lectern Location: "
                     + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
                     + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD

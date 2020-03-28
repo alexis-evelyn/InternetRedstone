@@ -39,6 +39,7 @@ public class InteractWithLectern implements Listener {
         if (snapshot instanceof Lectern) {
             Lectern lectern = (Lectern) snapshot;
             LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
+            Player player = event.getPlayer();
 
             // Lecterns should only have 1 slot, but that may change in the future.
             ItemStack[] lecternItems = inventory.getContents();
@@ -64,10 +65,10 @@ public class InteractWithLectern implements Listener {
 
             try {
                 Location location = lectern.getLocation();
-                UUID player = event.getPlayer().getUniqueId();
+                UUID player_uuid = player.getUniqueId();
 
                 if (!trackers.isRegistered(location))
-                    trackers.registerTracker(location, player);
+                    trackers.registerTracker(location, player_uuid);
             } catch (DuplicateObjectException exception) {
                 Logger.printException(exception);
             }

@@ -33,6 +33,9 @@ public class RedstoneUpdate implements Listener {
 
     @EventHandler
     public void onRedstoneUpdate(BlockPhysicsEvent event) {
+        // TODO: Prevent Lectern From Sending Out Signal When Player Flips Book Page
+        // Most Likely Disable Block Updating For Book Page Flip
+
         BlockState snapshot = event.getBlock().getState();
 
         if (snapshot instanceof Lectern) {

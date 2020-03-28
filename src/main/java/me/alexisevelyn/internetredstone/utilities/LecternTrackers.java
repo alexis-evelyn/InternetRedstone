@@ -35,7 +35,9 @@ public class LecternTrackers {
                     + ChatColor.GOLD + ", already stored in database!!!");
 
         LecternTracker tracker = new LecternTracker(location, player);
-        tracker.subscribe();
+
+        // TODO: Does not Work With Async Code In Initializing of LecternTracker
+//        tracker.subscribe();
 
         trackers.put(location, tracker);
 
