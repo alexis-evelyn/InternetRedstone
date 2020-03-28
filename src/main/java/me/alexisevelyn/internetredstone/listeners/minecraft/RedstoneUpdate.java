@@ -1,7 +1,9 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import me.alexisevelyn.internetredstone.utilities.LecternTracker;
+import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,23 +25,10 @@ import java.util.UUID;
  * So, instead, I have to use a BlockPhysicsEvent and filter out all the unnecessary noise.
  */
 public class RedstoneUpdate implements Listener {
-    LecternTracker tracker;
-    String identifier = "[Internet Redstone]";
+    LecternTrackers trackers;
 
-    public RedstoneUpdate() {
-        try {
-            Location location = Objects.requireNonNull(Bukkit.getWorld("world")).getSpawnLocation();
-            UUID alexis_evelyn = UUID.fromString("f3b4e8a4-7f52-4b0a-a18d-1af64935a89f"); // My UUID For Testing
-            tracker = new LecternTracker(location, alexis_evelyn);
-        } catch (Exception exception) {
-            Logger.printException(exception);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        // Just a Temporary Measure To Try To Test Subscribe (For Some Reason Doesn't Load in Constructor)
-        tracker.subscribe();
+    public RedstoneUpdate(LecternTrackers trackers) {
+        this.trackers = trackers;
     }
 
     @EventHandler
@@ -49,9 +38,14 @@ public class RedstoneUpdate implements Listener {
         if (snapshot instanceof Lectern) {
             Lectern lectern = (Lectern) snapshot;
             LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
+            Location location = lectern.getLocation();
 
-            // For some reason, this causes a NullPointerException!!!
-//            LecternTracker tracker = this.tracker; // TODO: Retrieve Specific Tracker From Another Class
+            // If Tracker Not Registered, Don't Bother
+            // We Won't Register Here As We Will Register on Startup
+            if (!trackers.isRegistered(location))
+                return;
+
+            LecternTracker tracker = trackers.getTracker(location);
 
             // Prevent Sending Duplicate Redstone Power Levels
             try {
@@ -62,13 +56,13 @@ public class RedstoneUpdate implements Listener {
                 + "Failed To Check Previous Last Known Power At Location: "
                 + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
                 + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + tracker.getLocation().getBlockX()
+                + location.getBlockX()
                 + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
                 + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + tracker.getLocation().getBlockY()
+                + location.getBlockY()
                 + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
                 + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + tracker.getLocation().getBlockZ()
+                + location.getBlockZ()
                 + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
 
                 Logger.printException(exception);
@@ -93,7 +87,7 @@ public class RedstoneUpdate implements Listener {
             BookMeta bookMeta = (BookMeta) book.getItemMeta();
 
             // If not marked as a special Lectern, then ignore
-            if (!ChatColor.stripColor(bookMeta.getPage(1)).contains(identifier))
+            if (!ChatColor.stripColor(bookMeta.getPage(1)).contains(trackers.getIdentifier()))
                 return;
 
             // Now that the lectern verification is finished, store the current power level to prevent duplicates later
@@ -102,7 +96,7 @@ public class RedstoneUpdate implements Listener {
             // Note: This Page Check Keeps The Book From Being "Frozen" on the First Page. Page 0 is Page 1 of the Book!!!
             if (lectern.getPage() == 0) {
                 bookMeta.setPage(1, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                        + identifier
+                        + trackers.getIdentifier()
                         + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
                         + "\n"
                         + "Redstone Power: "

@@ -15,3 +15,4 @@
 * HiveMQ MQTT Client Library - Apache 2.0 - https://github.com/hivemq/hivemq-mqtt-client/blob/develop/LICENSE
 * JetBrains Java Annotations - Apache 2.0 - https://github.com/JetBrains/java-annotations/blob/master/LICENSE.txt
 * MySQL Connector J - GPL-2 - https://mvnrepository.com/artifact/mysql/mysql-connector-java
+* Project Lombok - MIT - https://github.com/rzwitserloot/lombok/blob/master/LICENSE

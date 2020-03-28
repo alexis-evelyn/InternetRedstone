@@ -9,7 +9,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LecternTrackers {
+    // List of Tracker Objects
     ConcurrentHashMap<Location, LecternTracker> trackers;
+
+    // Identifier to Look For In Order To Help Track Lecterns
+    String identifier = "[Internet Redstone]";
 
     public LecternTrackers() {
         trackers = new ConcurrentHashMap<>();
@@ -57,5 +61,36 @@ public class LecternTrackers {
         tracker.cleanup();
 
         trackers.remove(location);
+    }
+
+    public boolean isRegistered(Location location) {
+        return trackers.containsKey(location);
+    }
+
+    @lombok.SneakyThrows
+    public LecternTracker getTracker(Location location) {
+        if (!isRegistered(location))
+            throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
+                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + location.getBlockX()
+                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + location.getBlockY()
+                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + location.getBlockZ()
+                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
+                    + ChatColor.GOLD + ", missing from database!!!");
+
+        return trackers.get(location);
+    }
+
+    public String getIdentifier() {
+        return this.identifier;
+    }
+
+    public ConcurrentHashMap<Location, LecternTracker> getTrackers() {
+        return trackers;
     }
 }

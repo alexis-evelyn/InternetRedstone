@@ -4,3 +4,11 @@ version: ${project.version}
 main: me.alexisevelyn.internetredstone.Main
 api-version: 1.13
 load: POSTWORLD
+
+# Commands and Base Permissions
+commands:
+  lecterns:
+    description: List the registered lecterns
+    usage: /lecterns
+    permission: me.alexisevelyn.internetredstone.admin
+    permission-message: You don't have the me.alexisevelyn.internetredstone.admin permission.

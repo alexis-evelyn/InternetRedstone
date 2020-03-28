@@ -4,6 +4,7 @@ import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
@@ -17,14 +18,12 @@ public class TakeBook implements Listener {
 
     @EventHandler
     public void takeBook(PlayerTakeLecternBookEvent event) {
-        // Do Nothing For Now!!!
-
-        // This will be used to unregister a lectern with the plugin
-
+        // Unregister Lectern With Plugin if Registered
         try {
-            // TODO: Check if tracker is a special tracker
+            Location location = event.getLectern().getLocation();
 
-            trackers.unregisterTracker(event.getLectern().getLocation());
+            if (trackers.isRegistered(location))
+                trackers.unregisterTracker(location);
         } catch (MissingObjectException exception) {
             Logger.printException(exception);
         }
