@@ -8,3 +8,4 @@
 * Book Meta - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/inventory/meta/BookMeta.html
 * HiveMQ MQTT Client Library - https://github.com/hivemq/hivemq-mqtt-client
 * HiveMQ MQTT Client Docs - https://hivemq.github.io/hivemq-mqtt-client/docs/mqtt-operations/connect/
+* HiveMQ MQTT Main Docs - https://www.hivemq.com/docs/hivemq/4.3/user-guide/introduction.html
