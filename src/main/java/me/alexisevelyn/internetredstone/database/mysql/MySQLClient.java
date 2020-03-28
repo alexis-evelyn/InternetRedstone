@@ -1,6 +1,7 @@
 package me.alexisevelyn.internetredstone.database.mysql;
 
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import org.bukkit.ChatColor;
 
 import java.sql.*;
 
@@ -21,7 +22,9 @@ public class MySQLClient {
             ResultSet rs = st.executeQuery(query);
 
             if (rs.next()) {
-                System.out.println(rs.getString(1));
+                Logger.info(ChatColor.GOLD + "MySQL Version: "
+                        + ChatColor.DARK_PURPLE
+                        + rs.getString(1));
             }
         } catch (SQLException exception) {
             Logger.printException(exception);
