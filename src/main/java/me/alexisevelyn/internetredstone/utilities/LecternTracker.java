@@ -16,6 +16,10 @@ import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -25,7 +29,7 @@ public class LecternTracker {
     // Used to track the player who owns the lectern. Will aid in allowing using that player's settings.
     UUID player;
     // Used to prevent duplicate signals from being sent
-    Integer lastKnownSignal;
+    Integer lastKnownSignal = -1;
 
     MQTTClient client;
 
@@ -74,14 +78,22 @@ public class LecternTracker {
         Consumer<Mqtt5Publish> callback = new Consumer<Mqtt5Publish>() {
             @Override
             public void accept(Mqtt5Publish mqtt5Publish) {
-                Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                        + "Received Message On Topic: "
-                        + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                        + mqtt5Publish.getTopic().toString()
-                        + "Message: \n"
-                        + ChatColor.AQUA + "" + ChatColor.BOLD
-                        + mqtt5Publish.getPayload().toString()
-                        + ChatColor.RESET);
+                try {
+                    String decoded = new String(mqtt5Publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
+
+                    Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+                            + "Received Message On Topic: "
+                            + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                            + mqtt5Publish.getTopic().toString());
+
+                    Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+                            + "Message: "
+                            + ChatColor.AQUA + "" + ChatColor.BOLD
+                            + decoded
+                            + ChatColor.RESET);
+                } catch (Exception exception) {
+                    Logger.printException(exception);
+                }
             }
         };
 
@@ -98,5 +110,9 @@ public class LecternTracker {
 
     public void setLastKnownPower(Integer lastKnownSignal) {
         this.lastKnownSignal = lastKnownSignal;
+    }
+
+    public Location getLocation() {
+        return this.location;
     }
 }

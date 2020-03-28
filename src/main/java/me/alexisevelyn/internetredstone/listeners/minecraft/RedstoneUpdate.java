@@ -10,6 +10,7 @@ import org.bukkit.block.Lectern;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
@@ -30,10 +31,15 @@ public class RedstoneUpdate implements Listener {
             Location location = Objects.requireNonNull(Bukkit.getWorld("world")).getSpawnLocation();
             UUID alexis_evelyn = UUID.fromString("f3b4e8a4-7f52-4b0a-a18d-1af64935a89f"); // My UUID For Testing
             tracker = new LecternTracker(location, alexis_evelyn);
-            tracker.subscribe();
         } catch (Exception exception) {
             Logger.printException(exception);
         }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // Just a Temporary Measure To Try To Test Subscribe (For Some Reason Doesn't Load in Constructor)
+        tracker.subscribe();
     }
 
     @EventHandler
@@ -43,11 +49,30 @@ public class RedstoneUpdate implements Listener {
         if (snapshot instanceof Lectern) {
             Lectern lectern = (Lectern) snapshot;
             LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
-            LecternTracker tracker = this.tracker; // TODO: Retrieve Specific Tracker From Another Class
+
+            // For some reason, this causes a NullPointerException!!!
+//            LecternTracker tracker = this.tracker; // TODO: Retrieve Specific Tracker From Another Class
 
             // Prevent Sending Duplicate Redstone Power Levels
-            if (lectern.getBlock().getBlockPower() == tracker.getLastKnownPower())
-                return;
+            try {
+                if (snapshot.getBlock().getBlockPower() == tracker.getLastKnownPower())
+                    return;
+            } catch (NullPointerException exception) {
+                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                + "Failed To Check Previous Last Known Power At Location: "
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + tracker.getLocation().getBlockX()
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + tracker.getLocation().getBlockY()
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + tracker.getLocation().getBlockZ()
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
+
+                Logger.printException(exception);
+            }
 
             // Lecterns should only have 1 slot, but that may change in the future.
             ItemStack[] lecternItems = inventory.getContents();
