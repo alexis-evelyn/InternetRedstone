@@ -53,4 +53,54 @@ public class Logger {
                 + " "
                 + message);
     }
+
+    public static void warning(String message) {
+        Bukkit.getLogger().warning(ChatColor.DARK_PURPLE
+                + "["
+                + getPluginPrefix()
+                + "]"
+                + ChatColor.RESET
+                + " "
+                + message);
+    }
+
+    public static void config(String message) {
+        Bukkit.getLogger().config(ChatColor.DARK_PURPLE
+                + "["
+                + getPluginPrefix()
+                + "]"
+                + ChatColor.RESET
+                + " "
+                + message);
+    }
+
+    public static void fine(String message) {
+        Bukkit.getLogger().fine(ChatColor.DARK_PURPLE
+                + "["
+                + getPluginPrefix()
+                + "]"
+                + ChatColor.RESET
+                + " "
+                + message);
+    }
+
+    public static void finer(String message) {
+        Bukkit.getLogger().finer(ChatColor.DARK_PURPLE
+                + "["
+                + getPluginPrefix()
+                + "]"
+                + ChatColor.RESET
+                + " "
+                + message);
+    }
+
+    public static void finest(String message) {
+        Bukkit.getLogger().finest(ChatColor.DARK_PURPLE
+                + "["
+                + getPluginPrefix()
+                + "]"
+                + ChatColor.RESET
+                + " "
+                + message);
+    }
 }

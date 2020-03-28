@@ -30,6 +30,7 @@ public class RedstoneUpdate implements Listener {
             Location location = Objects.requireNonNull(Bukkit.getWorld("world")).getSpawnLocation();
             UUID alexis_evelyn = UUID.fromString("f3b4e8a4-7f52-4b0a-a18d-1af64935a89f"); // My UUID For Testing
             tracker = new LecternTracker(location, alexis_evelyn);
+            tracker.subscribe();
         } catch (Exception exception) {
             Logger.printException(exception);
         }

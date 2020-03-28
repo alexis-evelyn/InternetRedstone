@@ -6,3 +6,5 @@
 * Lectern Inventory - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/inventory/LecternInventory.html
 * Take Book Event - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/player/PlayerTakeLecternBookEvent.html
 * Book Meta - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/inventory/meta/BookMeta.html
+* HiveMQ MQTT Client Library - https://github.com/hivemq/hivemq-mqtt-client
+* HiveMQ MQTT Client Docs - https://hivemq.github.io/hivemq-mqtt-client/docs/mqtt-operations/connect/
