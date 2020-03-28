@@ -9,3 +9,9 @@
 * HiveMQ MQTT Client Library - https://github.com/hivemq/hivemq-mqtt-client
 * HiveMQ MQTT Client Docs - https://hivemq.github.io/hivemq-mqtt-client/docs/mqtt-operations/connect/
 * HiveMQ MQTT Main Docs - https://www.hivemq.com/docs/hivemq/4.3/user-guide/introduction.html
+
+# Dependencies
+* PaperSpigot - GPL-3 - https://github.com/PaperMC/Paper/blob/master/LICENSE.md
+* HiveMQ MQTT Client Library - Apache 2.0 - https://github.com/hivemq/hivemq-mqtt-client/blob/develop/LICENSE
+* JetBrains Java Annotations - Apache 2.0 - https://github.com/JetBrains/java-annotations/blob/master/LICENSE.txt
+* MySQL Connector J - GPL-2 - https://mvnrepository.com/artifact/mysql/mysql-connector-java

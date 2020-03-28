@@ -81,5 +81,10 @@
             <artifactId>annotations</artifactId>
             <version>16.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.19</version>
+        </dependency>
     </dependencies>
 </project>
