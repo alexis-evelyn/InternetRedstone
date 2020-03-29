@@ -2,8 +2,11 @@ package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
+import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
+import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
@@ -44,23 +47,16 @@ public class InteractWithLectern implements Listener {
             LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
             Player player = event.getPlayer();
 
-            // Lecterns should only have 1 slot, but that may change in the future.
-            ItemStack[] lecternItems = inventory.getContents();
-            int lecternSize = lecternItems.length;
+            ItemStack book;
+            BookMeta bookMeta;
 
-            // Something's Wrong With The Lectern - No Need For Further Processing
-            if (lecternSize == 0)
+            try {
+                book = LecternUtilities.getItem(inventory);
+                bookMeta = LecternUtilities.getBookMeta(book);
+            } catch (InvalidLectern | InvalidBook exception) {
+                Logger.warning("RedstoneUpdate: " + exception.getMessage());
                 return;
-
-            // Grabs item from first slot - Will be null if none in slot
-            ItemStack book = lecternItems[0];
-
-            // Not An Expected Book Or No Book - No Need For Further Processing
-            if (book == null || !(book.getItemMeta() instanceof BookMeta))
-                return;
-
-            // Get the book's metadata (so, nbt tags)
-            BookMeta bookMeta = (BookMeta) book.getItemMeta();
+            }
 
             // If not marked as a special Lectern, then ignore
             if (!ChatColor.stripColor(bookMeta.getPage(1)).contains(trackers.getIdentifier()))

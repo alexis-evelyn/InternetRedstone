@@ -2,7 +2,10 @@ package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
+import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -51,43 +54,19 @@ public class RedstoneUpdate implements Listener {
             LecternTracker tracker = trackers.getTracker(location);
 
             // Prevent Sending Duplicate Redstone Power Levels
+            if (tracker.isLastKnownPower(snapshot.getBlock().getBlockPower()))
+                return;
+
+            ItemStack book;
+            BookMeta bookMeta;
+
             try {
-                if (snapshot.getBlock().getBlockPower() == tracker.getLastKnownPower())
-                    return;
-            } catch (NullPointerException exception) {
-                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                + "Failed To Check Previous Last Known Power At Location: "
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + location.getBlockX()
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + location.getBlockY()
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + location.getBlockZ()
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
-
-                Logger.printException(exception);
+                book = LecternUtilities.getItem(inventory);
+                bookMeta = LecternUtilities.getBookMeta(book);
+            } catch (InvalidLectern | InvalidBook exception) {
+                Logger.warning("RedstoneUpdate: " + exception.getMessage());
+                return;
             }
-
-            // Lecterns should only have 1 slot, but that may change in the future.
-            ItemStack[] lecternItems = inventory.getContents();
-            int lecternSize = lecternItems.length;
-
-            // Something's Wrong With The Lectern - No Need For Further Processing
-            if (lecternSize == 0)
-                return;
-
-            // Grabs item from first slot - Will be null if none in slot
-            ItemStack book = lecternItems[0];
-
-            // Not An Expected Book Or No Book - No Need For Further Processing
-            if (book == null || !(book.getItemMeta() instanceof BookMeta))
-                return;
-
-            // Get the book's metadata (so, nbt tags)
-            BookMeta bookMeta = (BookMeta) book.getItemMeta();
 
             // If not marked as a special Lectern, then ignore
             if (!ChatColor.stripColor(bookMeta.getPage(1)).contains(trackers.getIdentifier()))
