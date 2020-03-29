@@ -20,8 +20,12 @@ public class MQTTClient {
     CompletableFuture<Mqtt5ConnAck> connection;
 
     public MQTTClient(UUID player_uuid, String broker) {
-        writeInfo(ChatColor.GOLD + "Registered Client For: " + player_uuid);
-        writeInfo(ChatColor.GOLD + "With Broker: " + broker);
+        writeInfo(ChatColor.GOLD + "Registered Client For: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + player_uuid);
+
+        writeInfo(ChatColor.GOLD + "With Broker: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + broker);
+
         client = Mqtt5Client.builder().serverHost(broker).buildAsync();
     }
 

@@ -14,8 +14,11 @@ import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Lectern;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -163,15 +166,29 @@ public class LecternTracker {
                 + decoded
                 + ChatColor.RESET);
 
-        Integer powerLevel = Integer.getInteger(decoded);
-
-        if (powerLevel == null) {
+        Integer powerLevel;
+        try {
+            powerLevel = Integer.valueOf(decoded);
+        } catch (NumberFormatException exception) {
+//            Logger.info(ChatColor.GOLD + "Not A Valid Integer: "
+//                    + ChatColor.DARK_PURPLE + decoded);
             return;
         }
 
         if (0 <= powerLevel && powerLevel <= 15) {
-            Logger.info(ChatColor.DARK_PURPLE + "Setting Redstone Signal To (Not Implemented)" + powerLevel);
+            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
+                    + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
 
+            BlockState snapshot = location.getBlock().getState();
+
+            if (snapshot instanceof Lectern) {
+                Lectern lectern = (Lectern) snapshot;
+
+                // TODO: Check to ensure at least 15 pages are in book!!!
+                // And that there is a book.
+                lectern.setPage(powerLevel);
+            }
         }
+
     };
 }
