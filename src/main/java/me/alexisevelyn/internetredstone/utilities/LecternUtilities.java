@@ -2,6 +2,7 @@ package me.alexisevelyn.internetredstone.utilities;
 
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
@@ -30,5 +31,10 @@ public class LecternUtilities {
 
         // Get the book's metadata (so, nbt tags)
         return (BookMeta) book.getItemMeta();
+    }
+
+    public static boolean hasIdentifier(BookMeta bookMeta, String identifier) {
+        // If not marked as a special Lectern, then ignore
+        return ChatColor.stripColor(bookMeta.getPage(1)).contains(identifier);
     }
 }

@@ -40,7 +40,14 @@ public class InteractWithLectern implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        BlockState snapshot = Objects.requireNonNull(event.getClickedBlock()).getState();
+        BlockState snapshot;
+
+        try {
+            snapshot = Objects.requireNonNull(event.getClickedBlock()).getState();
+        } catch (NullPointerException exception) {
+            Logger.warning(ChatColor.GOLD + "InteractWithLectern: No Block Was Clicked!!!");
+            return;
+        }
 
         if (snapshot instanceof Lectern) {
             Lectern lectern = (Lectern) snapshot;
@@ -54,12 +61,12 @@ public class InteractWithLectern implements Listener {
                 book = LecternUtilities.getItem(inventory);
                 bookMeta = LecternUtilities.getBookMeta(book);
             } catch (InvalidLectern | InvalidBook exception) {
-                Logger.warning("RedstoneUpdate: " + exception.getMessage());
+                Logger.warning("InteractWithRedstone: " + exception.getMessage());
                 return;
             }
 
             // If not marked as a special Lectern, then ignore
-            if (!ChatColor.stripColor(bookMeta.getPage(1)).contains(trackers.getIdentifier()))
+            if (!LecternUtilities.hasIdentifier(bookMeta, trackers.getIdentifier()))
                 return;
 
             try {

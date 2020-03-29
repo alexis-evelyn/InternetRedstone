@@ -69,7 +69,7 @@ public class RedstoneUpdate implements Listener {
             }
 
             // If not marked as a special Lectern, then ignore
-            if (!ChatColor.stripColor(bookMeta.getPage(1)).contains(trackers.getIdentifier()))
+            if (!LecternUtilities.hasIdentifier(bookMeta, trackers.getIdentifier()))
                 return;
 
             // Now that the lectern verification is finished, store the current power level to prevent duplicates later
