@@ -62,16 +62,25 @@ public class LecternTracker {
         client.sendMessage(topic, payload, MqttQos.EXACTLY_ONCE);
     }
 
-    public void subscribe() {
-        MqttTopicFilterImpl topic = MqttTopicFilterImpl.of("cmnd/redstone/POWER"); // The Topic To Subscribe To
+    // Choose your method of registry. For Multiple Topics, I Recommend The ImmutableList Method
+    // For A Single Topic, I Recommend The String Method
+    // For Full Control, Use The MqttSubscribe Method
+    public void subscribe(ImmutableList<MqttSubscription> subscriptions, Consumer<Mqtt5Publish> callback) {
+        MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
+        MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
+
+        subscribe(subscription, callback);
+    }
+
+    public void subscribe(String topic_string, Consumer<Mqtt5Publish> callback) {
+        MqttTopicFilterImpl topic = MqttTopicFilterImpl.of(topic_string); // The Topic To Subscribe To
         MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
         boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
 
         // Docs For Mqtt5RetainHandling - https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104
         Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
         boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
-        
-        
+
         MqttSubscription redstone = new MqttSubscription(topic, qos, noLocal, retainHandling, retainAsPublished); // A Subscription To Subscribe To
         ImmutableList<MqttSubscription> subscriptions = ImmutableList.of(redstone); // A List of Subscriptions To Subscribe To
 
@@ -80,30 +89,40 @@ public class LecternTracker {
         MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
 
         MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
-        Consumer<Mqtt5Publish> callback = mqtt5Publish -> { // Function To Run Asynchronously When Message is Received
-            try {
-                String decoded = new String(mqtt5Publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
 
-                Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                        + "Received Message On Topic: "
-                        + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                        + mqtt5Publish.getTopic().toString());
+        subscribe(subscription, callback);
+    }
 
-                Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                        + "Message: "
-                        + ChatColor.AQUA + "" + ChatColor.BOLD
-                        + decoded
-                        + ChatColor.RESET);
-            } catch (Exception exception) {
-                Logger.printException(exception);
-            }
-        };
+    public void subscribe(MqttTopicFilterImpl topic, Consumer<Mqtt5Publish> callback) {
+        MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
+        boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
 
+        // Docs For Mqtt5RetainHandling - https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104
+        Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
+        boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
+
+        MqttSubscription redstone = new MqttSubscription(topic, qos, noLocal, retainHandling, retainAsPublished); // A Subscription To Subscribe To
+        ImmutableList<MqttSubscription> subscriptions = ImmutableList.of(redstone); // A List of Subscriptions To Subscribe To
+
+        // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901054
+        // https://blog.codecentric.de/en/2017/11/hello-mqtt-version-5-0/
+        MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
+
+        MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
+
+        subscribe(subscription, callback);
+    }
+
+    public void subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
         client.subscribe(subscription, callback); // Subscribe To Topics And Send Results To Callback Asynchronously
     }
 
     public void cleanup() {
         client.disconnect();
+    }
+
+    public boolean isLastKnownPower(Integer currentPower) {
+        return currentPower.equals(getLastKnownPower());
     }
 
     public Integer getLastKnownPower() {
