@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone.utilities;
 
+import io.reactivex.functions.Consumer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -102,5 +103,20 @@ public class Logger {
                 + ChatColor.RESET
                 + " "
                 + message);
+    }
+
+    public static void rxHandler(Throwable error) {
+        severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Severe Throwable Error (Cannot Recover): "
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD + error.getMessage());
+
+        severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
+
+        for (StackTraceElement line : error.getStackTrace()) {
+            severe(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + line.getLineNumber()
+                    + ChatColor.RED + "" + ChatColor.BOLD + " - "
+                    + ChatColor.DARK_RED + "" + ChatColor.BOLD + line.toString());
+        }
+
+        severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
     }
 }

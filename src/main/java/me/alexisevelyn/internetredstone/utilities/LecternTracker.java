@@ -181,15 +181,18 @@ public class LecternTracker {
 
             // Doesn't Work Asynchronously
             // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
-//            BlockState snapshot = location.getBlock().getState();
-//
-//            if (snapshot instanceof Lectern) {
-//                Lectern lectern = (Lectern) snapshot;
-//
-//                // TODO: Check to ensure at least 15 pages are in book!!!
-//                // And that there is a book.
-//                lectern.setPage(powerLevel);
-//            }
+            // Failed to read BlockState at: world: world location: (9, 70, 135)
+            BlockState snapshot = location.getBlock().getState();
+
+            if (snapshot instanceof Lectern) {
+                Lectern lectern = (Lectern) snapshot;
+
+                // TODO: Check to ensure at least 15 pages are in book!!!
+                // And that there is a book.
+                lectern.setPage(powerLevel);
+            }
+
+            snapshot.update();
         }
 
     };

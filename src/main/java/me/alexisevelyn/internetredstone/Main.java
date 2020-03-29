@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone;
 
+import io.reactivex.plugins.RxJavaPlugins;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
@@ -21,6 +22,8 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+        RxJavaPlugins.setErrorHandler(Logger::rxHandler);
+
         trackers = new LecternTrackers();
 
         getServer().getPluginManager().registerEvents(new RedstoneUpdate(trackers), this);
