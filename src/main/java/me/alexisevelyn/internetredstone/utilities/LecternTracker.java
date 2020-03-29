@@ -10,17 +10,16 @@ import com.hivemq.client.mqtt.exceptions.ConnectionClosedException;
 import com.hivemq.client.mqtt.exceptions.ConnectionFailedException;
 import com.hivemq.client.mqtt.exceptions.MqttClientStateException;
 import com.hivemq.client.mqtt.mqtt5.exceptions.Mqtt5ConnAckException;
+import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class LecternTracker {
@@ -32,6 +31,7 @@ public class LecternTracker {
     Integer lastKnownSignal = -1;
 
     MQTTClient client;
+    CompletableFuture<Mqtt5ConnAck> connection;
 
     public LecternTracker(Location location, UUID player) {
         this.location = location;
@@ -42,7 +42,10 @@ public class LecternTracker {
 
         try {
             client = new MQTTClient(player, broker);
-            client.connect();
+            connection = client.connect();
+
+            // Untested
+            connection.thenAccept(read -> subscribe("alexis/redstone/lectern", callback));
         } catch (ConnectionFailedException exception) {
             Logger.severe("Failed to even send the connect message!!!");
         } catch (ConnectionClosedException exception) {
@@ -56,7 +59,7 @@ public class LecternTracker {
     }
 
     public void sendRedstoneUpdate(Integer signal) {
-        String topic = "cmnd/redstone/POWER";
+        String topic = "alexis/redstone/lectern";
         byte[] payload = signal.toString().getBytes();
 
         client.sendMessage(topic, payload, MqttQos.EXACTLY_ONCE);
@@ -134,6 +137,41 @@ public class LecternTracker {
     }
 
     public Location getLocation() {
-        return this.location;
+        return location;
     }
+
+    public MQTTClient getClient() {
+        return client;
+    }
+
+    public CompletableFuture<Mqtt5ConnAck> getConnection() {
+        return connection;
+    }
+
+    // Function To Run Asynchronously When Message is Received
+    Consumer<Mqtt5Publish> callback = mqtt5Publish -> {
+        String decoded = new String(mqtt5Publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
+
+        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+                + "Received Message On Topic: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + mqtt5Publish.getTopic().toString());
+
+        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+                + "Message: "
+                + ChatColor.AQUA + "" + ChatColor.BOLD
+                + decoded
+                + ChatColor.RESET);
+
+        Integer powerLevel = Integer.getInteger(decoded);
+
+        if (powerLevel == null) {
+            return;
+        }
+
+        if (0 <= powerLevel && powerLevel <= 15) {
+            Logger.info(ChatColor.DARK_PURPLE + "Setting Redstone Signal To (Not Implemented)" + powerLevel);
+
+        }
+    };
 }
