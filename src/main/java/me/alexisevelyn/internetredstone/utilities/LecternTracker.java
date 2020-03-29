@@ -179,15 +179,17 @@ public class LecternTracker {
             Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
                     + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
 
-            BlockState snapshot = location.getBlock().getState();
-
-            if (snapshot instanceof Lectern) {
-                Lectern lectern = (Lectern) snapshot;
-
-                // TODO: Check to ensure at least 15 pages are in book!!!
-                // And that there is a book.
-                lectern.setPage(powerLevel);
-            }
+            // Doesn't Work Asynchronously
+            // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
+//            BlockState snapshot = location.getBlock().getState();
+//
+//            if (snapshot instanceof Lectern) {
+//                Lectern lectern = (Lectern) snapshot;
+//
+//                // TODO: Check to ensure at least 15 pages are in book!!!
+//                // And that there is a book.
+//                lectern.setPage(powerLevel);
+//            }
         }
 
     };
