@@ -24,7 +24,7 @@ public final class Main extends JavaPlugin {
         // Plugin startup logic
         RxJavaPlugins.setErrorHandler(Logger::rxHandler);
 
-        trackers = new LecternTrackers();
+        trackers = new LecternTrackers(this);
 
         getServer().getPluginManager().registerEvents(new RedstoneUpdate(trackers), this);
         getServer().getPluginManager().registerEvents(new InteractWithLectern(trackers), this);

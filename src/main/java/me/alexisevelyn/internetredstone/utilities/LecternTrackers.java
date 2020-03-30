@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone.utilities;
 
+import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.ChatColor;
@@ -9,13 +10,18 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LecternTrackers {
+    // Main class used to get synchronous execution
+    Main main;
+
     // List of Tracker Objects
     ConcurrentHashMap<Location, LecternTracker> trackers;
 
     // Identifier to Look For In Order To Help Track Lecterns
     String identifier = "[Internet Redstone]";
 
-    public LecternTrackers() {
+    public LecternTrackers(Main main) {
+        this.main = main;
+
         trackers = new ConcurrentHashMap<>();
     }
 
@@ -34,7 +40,7 @@ public class LecternTrackers {
                     + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
                     + ChatColor.GOLD + ", already stored in database!!!");
 
-        LecternTracker tracker = new LecternTracker(location, player);
+        LecternTracker tracker = new LecternTracker(main, location, player);
         trackers.put(location, tracker);
 
         return tracker;

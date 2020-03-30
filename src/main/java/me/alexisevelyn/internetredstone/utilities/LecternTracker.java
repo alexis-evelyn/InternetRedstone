@@ -13,6 +13,7 @@ import com.hivemq.client.mqtt.mqtt5.exceptions.Mqtt5ConnAckException;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
+import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,10 +23,14 @@ import org.bukkit.block.Lectern;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 public class LecternTracker {
+    // Main class used to get synchronous execution
+    Main main;
     // Used to track the location of the lectern. Includes the world object too!
     Location location;
     // Used to track the player who owns the lectern. Will aid in allowing using that player's settings.
@@ -36,9 +41,10 @@ public class LecternTracker {
     MQTTClient client;
     CompletableFuture<Mqtt5ConnAck> connection;
 
-    public LecternTracker(Location location, UUID player) {
+    public LecternTracker(Main main, Location location, UUID player) {
         this.location = location;
         this.player = player;
+        this.main = main;
 
         // This string will be read from Player's Config Or If None Provided, Server's Config
         String broker = "broker.hivemq.com";
@@ -176,24 +182,29 @@ public class LecternTracker {
         }
 
         if (0 <= powerLevel && powerLevel <= 15) {
-            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
-                    + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
+            Future<Void> runBukkit = Bukkit.getScheduler().callSyncMethod(main, syncBukkit(powerLevel));
+        }
+    };
 
-            // Doesn't Work Asynchronously
-            // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
-            // Failed to read BlockState at: world: world location: (9, 70, 135)
-            BlockState snapshot = location.getBlock().getState();
+    public Callable<Void> syncBukkit(Integer powerLevel) {
+        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
+                + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
 
-            if (snapshot instanceof Lectern) {
-                Lectern lectern = (Lectern) snapshot;
+        // Doesn't Work Asynchronously Or In This Callable Method.
+        // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
+        // Failed to read BlockState at: world: world location: (9, 70, 135)
+        BlockState snapshot = location.getBlock().getState();
 
-                // TODO: Check to ensure at least 15 pages are in book!!!
-                // And that there is a book.
-                lectern.setPage(powerLevel);
-            }
+        if (snapshot instanceof Lectern) {
+            Lectern lectern = (Lectern) snapshot;
 
-            snapshot.update();
+            // TODO: Check to ensure at least 15 pages are in book!!!
+            // And that there is a book.
+            lectern.setPage(powerLevel);
         }
 
-    };
+        snapshot.update();
+
+        return null;
+    }
 }
