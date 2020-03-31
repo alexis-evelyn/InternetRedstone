@@ -185,7 +185,7 @@ public class LecternTracker {
             Bukkit.getScheduler().runTask(main, new Runnable() {
                 @Override
                 public void run() {
-                    Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
+                    Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To: "
                             + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
 
                     try {
@@ -194,15 +194,31 @@ public class LecternTracker {
                         if (snapshot instanceof Lectern) {
                             Lectern lectern = (Lectern) snapshot;
 
+                            if (lectern == null) {
+                                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                                        + "Lectern is Null: "
+                                        + ChatColor.RESET);
+
+                                return;
+                            }
+
+                            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+                                    + "Current Page Is: "
+                                    + ChatColor.AQUA + "" + ChatColor.BOLD
+                                    + lectern.getPage()
+                                    + ChatColor.RESET);
+
                             // TODO: Check to ensure at least 15 pages are in book!!!
                             // And that there is a book.
-//                            lectern.setPage(powerLevel);
-                        }
+                            // For Some Reason, this causes a NullPointerException, but getPage() works fine.
+                            // Even hardcoding the integer doesn't change the result.
+                            lectern.setPage(powerLevel);
 
-                        snapshot.update();
-                    } catch(RuntimeException exception) {
+                            snapshot.update();
+                        }
+                    } catch(NullPointerException exception) {
                         Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                                + "Failed To Set Redstone Signal To: "
+                                + "Failed To Set Redstone Signal To Due To NullPointerException With setPage(int): "
                                 + ChatColor.AQUA + "" + ChatColor.BOLD
                                 + powerLevel
                                 + ChatColor.RESET);
