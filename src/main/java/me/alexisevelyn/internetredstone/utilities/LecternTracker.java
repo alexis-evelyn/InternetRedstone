@@ -182,29 +182,35 @@ public class LecternTracker {
         }
 
         if (0 <= powerLevel && powerLevel <= 15) {
-            Future<Void> runBukkit = Bukkit.getScheduler().callSyncMethod(main, syncBukkit(powerLevel));
+            Bukkit.getScheduler().runTask(main, new Runnable() {
+                @Override
+                public void run() {
+                    Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
+                            + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
+
+                    try {
+                        BlockState snapshot = location.getBlock().getState();
+
+                        if (snapshot instanceof Lectern) {
+                            Lectern lectern = (Lectern) snapshot;
+
+                            // TODO: Check to ensure at least 15 pages are in book!!!
+                            // And that there is a book.
+//                            lectern.setPage(powerLevel);
+                        }
+
+                        snapshot.update();
+                    } catch(RuntimeException exception) {
+                        Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                                + "Failed To Set Redstone Signal To: "
+                                + ChatColor.AQUA + "" + ChatColor.BOLD
+                                + powerLevel
+                                + ChatColor.RESET);
+
+                        Logger.printException(exception);
+                    }
+                }
+            });
         }
     };
-
-    public Callable<Void> syncBukkit(Integer powerLevel) {
-        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To (Not Implemented): "
-                + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
-
-        // Doesn't Work Asynchronously Or In This Callable Method.
-        // https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling
-        // Failed to read BlockState at: world: world location: (9, 70, 135)
-        BlockState snapshot = location.getBlock().getState();
-
-        if (snapshot instanceof Lectern) {
-            Lectern lectern = (Lectern) snapshot;
-
-            // TODO: Check to ensure at least 15 pages are in book!!!
-            // And that there is a book.
-            lectern.setPage(powerLevel);
-        }
-
-        snapshot.update();
-
-        return null;
-    }
 }
