@@ -214,13 +214,13 @@ public class LecternTracker {
                             // Even hardcoding the integer doesn't change the result.
                             lectern.setPage(powerLevel);
 
-                            snapshot.update();
+//                            snapshot.update();
                         }
                     } catch(NullPointerException exception) {
                         Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
                                 + "Failed To Set Redstone Signal To Due To NullPointerException With setPage(int): "
                                 + ChatColor.AQUA + "" + ChatColor.BOLD
-                                + exception.getCause().getMessage()
+                                + powerLevel
                                 + ChatColor.RESET);
 
                         Logger.printException(exception);
