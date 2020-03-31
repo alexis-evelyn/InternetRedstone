@@ -21,8 +21,15 @@ public class Logger {
     }
 
     public static void printException(Exception exception) {
+        String message = exception.getMessage();
+
+        // Some exceptions don't have messages, print their class name instead!!!
+        if (message == null) {
+            message = exception.getClass().getName();
+        }
+
         severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Exception: "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD + exception.getMessage());
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD + message);
 
         severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
 

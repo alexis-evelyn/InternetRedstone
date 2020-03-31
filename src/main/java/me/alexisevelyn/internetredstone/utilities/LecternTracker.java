@@ -220,7 +220,7 @@ public class LecternTracker {
                         Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
                                 + "Failed To Set Redstone Signal To Due To NullPointerException With setPage(int): "
                                 + ChatColor.AQUA + "" + ChatColor.BOLD
-                                + powerLevel
+                                + exception.getCause().getMessage()
                                 + ChatColor.RESET);
 
                         Logger.printException(exception);
