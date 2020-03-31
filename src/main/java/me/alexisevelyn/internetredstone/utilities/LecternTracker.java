@@ -214,7 +214,7 @@ public class LecternTracker {
                             // Even hardcoding the integer doesn't change the result.
                             lectern.setPage(powerLevel);
 
-//                            snapshot.update();
+                            snapshot.update();
                         }
                     } catch(NullPointerException exception) {
                         Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
