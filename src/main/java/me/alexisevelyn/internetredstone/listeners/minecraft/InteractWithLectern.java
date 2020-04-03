@@ -13,6 +13,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -30,9 +31,9 @@ public class InteractWithLectern implements Listener {
         this.trackers = trackers;
     }
 
-    @EventHandler
+    // We get called last, so a claim plugin can handle their stuff before we get the event
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void interactWithLectern(PlayerInteractEvent event) {
-        // TODO: Make Tracker Register If Book Is Put in Lectern In Same Event
         // Register Lectern With Plugin if Special Lectern
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)

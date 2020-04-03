@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.inventory.ItemStack;
@@ -28,7 +29,8 @@ public class RedstoneUpdate implements Listener {
         this.trackers = trackers;
     }
 
-    @EventHandler
+    // We get called last, so a claim plugin can handle their stuff before we get the event
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onRedstoneUpdate(BlockPhysicsEvent event) {
         // TODO: Prevent Lectern From Sending Out Signal When Player Flips Book Page
         // Most Likely Disable Block Updating For Book Page Flip

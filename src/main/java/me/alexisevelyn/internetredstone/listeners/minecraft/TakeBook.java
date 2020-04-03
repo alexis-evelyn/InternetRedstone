@@ -6,6 +6,7 @@ import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 
@@ -16,7 +17,8 @@ public class TakeBook implements Listener {
         this.trackers = trackers;
     }
 
-    @EventHandler
+    // We get called last, so a claim plugin can handle their stuff before we get the event
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void takeBook(PlayerTakeLecternBookEvent event) {
         // Unregister Lectern With Plugin if Registered
         try {

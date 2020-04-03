@@ -2,6 +2,7 @@ package me.alexisevelyn.internetredstone;
 
 import io.reactivex.plugins.RxJavaPlugins;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
+import me.alexisevelyn.internetredstone.listeners.minecraft.BreakLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
 import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
@@ -29,6 +30,7 @@ public final class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RedstoneUpdate(trackers), this);
         getServer().getPluginManager().registerEvents(new InteractWithLectern(trackers), this);
         getServer().getPluginManager().registerEvents(new TakeBook(trackers), this);
+        getServer().getPluginManager().registerEvents(new BreakLectern(trackers), this);
 
         try {
             PluginCommand lecterns = getCommand("lecterns");
