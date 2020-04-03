@@ -8,6 +8,15 @@ import java.util.Objects;
 
 public class Logger {
     static String pluginID = "InternetRedstone";
+    static Boolean debug = false;
+
+    public static void setDebugMode(Boolean debugMode) {
+        debug = debugMode;
+    }
+
+    public static boolean getDebugMode() {
+        return debug;
+    }
 
     public static String getPluginPrefix() {
         String prefix;
@@ -43,6 +52,9 @@ public class Logger {
     }
 
     public static void info(String message) {
+        if (!getDebugMode())
+            return;
+
         Bukkit.getLogger().info(ChatColor.DARK_PURPLE
                 + "["
                 + getPluginPrefix()
@@ -73,6 +85,9 @@ public class Logger {
     }
 
     public static void config(String message) {
+        if (!getDebugMode())
+            return;
+
         Bukkit.getLogger().config(ChatColor.DARK_PURPLE
                 + "["
                 + getPluginPrefix()
@@ -83,6 +98,9 @@ public class Logger {
     }
 
     public static void fine(String message) {
+        if (!getDebugMode())
+            return;
+
         Bukkit.getLogger().fine(ChatColor.DARK_PURPLE
                 + "["
                 + getPluginPrefix()
@@ -93,6 +111,9 @@ public class Logger {
     }
 
     public static void finer(String message) {
+        if (!getDebugMode())
+            return;
+
         Bukkit.getLogger().finer(ChatColor.DARK_PURPLE
                 + "["
                 + getPluginPrefix()
@@ -103,6 +124,9 @@ public class Logger {
     }
 
     public static void finest(String message) {
+        if (!getDebugMode())
+            return;
+
         Bukkit.getLogger().finest(ChatColor.DARK_PURPLE
                 + "["
                 + getPluginPrefix()

@@ -19,6 +19,8 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        Logger.setDebugMode(true);
+
         // Plugin startup logic
         RxJavaPlugins.setErrorHandler(Logger::rxHandler);
 
