@@ -43,8 +43,7 @@ public class LecternTracker {
 
     // Used to track the player who owns the lectern. Will aid in allowing using that player's settings.
     @SuppressWarnings("unused")
-    final
-    UUID player;
+    final UUID player;
 
     // Used to prevent duplicate signals from being sent
     Integer lastKnownSignal = -1;
