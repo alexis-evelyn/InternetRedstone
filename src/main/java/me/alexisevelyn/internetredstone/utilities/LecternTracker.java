@@ -17,6 +17,7 @@ import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
+import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -201,7 +202,7 @@ public class LecternTracker {
                 @Override
                 public void run() {
                     Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To: "
-                            + ChatColor.AQUA + "" + ChatColor.BOLD + powerLevel);
+                            + ChatColor.AQUA + "" + ChatColor.BOLD + (powerLevel + 1));
 
                     try {
                         BlockState snapshot = location.getBlock().getState();
@@ -217,7 +218,23 @@ public class LecternTracker {
 
                             // Update First Page In Book
                             // Must be performed before setting the page number!!!
-                            updatePage(lectern, mqtt5Publish, powerLevel);
+                            writeLastMessage(lectern, mqtt5Publish, powerLevel);
+
+                            try {
+                                validateBook(lectern);
+                            } catch (InvalidLectern | InvalidBook exception) {
+                                // Just return!!!
+
+                                Logger.warning("Failed to Get Lectern/Book: " + exception.getMessage());
+                                return;
+                            } catch (NotEnoughPages exception) {
+                                String warning = ChatColor.DARK_RED + "" + ChatColor.BOLD
+                                        + exception.getMessage();
+
+                                updateMainPage(lectern, warning);
+                                snapshot.update();
+                                return;
+                            }
 
                             // TODO: Check to ensure at least 15 pages are in book!!!
                             // TODO: And that there is a book.
@@ -229,7 +246,7 @@ public class LecternTracker {
                         Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
                                 + "Failed To Set Redstone Signal To Due To NullPointerException With setPage(int): "
                                 + ChatColor.AQUA + "" + ChatColor.BOLD
-                                + powerLevel
+                                + (powerLevel + 1)
                                 + ChatColor.RESET);
 
                         Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
@@ -242,7 +259,35 @@ public class LecternTracker {
         }
     };
 
-    public void updatePage(Lectern lectern, Mqtt5Publish mqtt5Publish, Integer powerLevel) {
+    public void validateBook(Lectern lectern) throws InvalidBook, InvalidLectern, NotEnoughPages {
+        LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
+
+        ItemStack book;
+        BookMeta bookMeta;
+
+        book = LecternUtilities.getItem(inventory);
+        bookMeta = LecternUtilities.getBookMeta(book);
+
+        if (bookMeta.getPageCount() != 15) {
+            throw new NotEnoughPages("You have " + bookMeta.getPageCount() + " pages in your book!!! You need exactly 15!!!");
+        }
+    }
+
+    public void writeLastMessage(Lectern lectern, Mqtt5Publish mqtt5Publish, Integer powerLevel) {
+        String page = ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+                + "Last Message: "
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD
+                + (powerLevel + 1)
+                + "\n"
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+                + "From Channel: "
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD
+                + mqtt5Publish.getTopic().toString();
+
+        updateMainPage(lectern, page);
+    }
+
+    public void updateMainPage(Lectern lectern, String page) {
         LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
 
         ItemStack book;
@@ -252,22 +297,14 @@ public class LecternTracker {
             book = LecternUtilities.getItem(inventory);
             bookMeta = LecternUtilities.getBookMeta(book);
         } catch (InvalidLectern | InvalidBook exception) {
-            Logger.warning("RedstoneUpdate: " + exception.getMessage());
+            Logger.warning("LecternTracker: " + exception.getMessage());
             return;
         }
 
         bookMeta.setPage(1, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
                 + LecternTrackers.getIdentifier()
                 + "\n"
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
-                + "Last Message: "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD
-                + (powerLevel + 1)
-                + "\n"
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
-                + "From Channel: "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD
-                + mqtt5Publish.getTopic().toString());
+                + page);
 
         book.setItemMeta(bookMeta);
         inventory.setItem(0, book);
