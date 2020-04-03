@@ -6,10 +6,8 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
 import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Commands;
-import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
-import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 

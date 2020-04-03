@@ -15,17 +15,20 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
+import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
+import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.LecternInventory;
+import org.bukkit.inventory.meta.BookMeta;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 public class LecternTracker {
@@ -37,6 +40,8 @@ public class LecternTracker {
     UUID player;
     // Used to prevent duplicate signals from being sent
     Integer lastKnownSignal = -1;
+    // Used to prevent updating ourselves
+    Boolean justUpdated = false;
 
     MQTTClient client;
     CompletableFuture<Mqtt5ConnAck> connection;
@@ -145,6 +150,16 @@ public class LecternTracker {
         this.lastKnownSignal = lastKnownSignal;
     }
 
+    public boolean getJustUpdated() {
+        Logger.info("Get Just Updated!!!");
+        return justUpdated;
+    }
+
+    public void setJustUpdated(Boolean justUpdated) {
+        Logger.info("Set Just Updated: " + justUpdated);
+        this.justUpdated = justUpdated;
+    }
+
     public Location getLocation() {
         return location;
     }
@@ -174,14 +189,14 @@ public class LecternTracker {
 
         Integer powerLevel;
         try {
-            powerLevel = Integer.valueOf(decoded);
+            powerLevel = Integer.parseInt(decoded) - 1;
         } catch (NumberFormatException exception) {
 //            Logger.info(ChatColor.GOLD + "Not A Valid Integer: "
 //                    + ChatColor.DARK_PURPLE + decoded);
             return;
         }
 
-        if (0 <= powerLevel && powerLevel <= 15) {
+        if (0 <= powerLevel && powerLevel <= 14) {
             Bukkit.getScheduler().runTask(main, new Runnable() {
                 @Override
                 public void run() {
@@ -194,24 +209,18 @@ public class LecternTracker {
                         if (snapshot instanceof Lectern) {
                             Lectern lectern = (Lectern) snapshot;
 
-                            if (lectern == null) {
-                                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                                        + "Lectern is Null: "
-                                        + ChatColor.RESET);
+//                            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+//                                    + "Current Page Is: "
+//                                    + ChatColor.AQUA + "" + ChatColor.BOLD
+//                                    + lectern.getPage()
+//                                    + ChatColor.RESET);
 
-                                return;
-                            }
-
-                            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                                    + "Current Page Is: "
-                                    + ChatColor.AQUA + "" + ChatColor.BOLD
-                                    + lectern.getPage()
-                                    + ChatColor.RESET);
+                            // Update First Page In Book
+                            // Must be performed before setting the page number!!!
+                            updatePage(lectern, mqtt5Publish, powerLevel);
 
                             // TODO: Check to ensure at least 15 pages are in book!!!
-                            // And that there is a book.
-                            // For Some Reason, this causes a NullPointerException, but getPage() works fine.
-                            // Even hardcoding the integer doesn't change the result.
+                            // TODO: And that there is a book.
                             lectern.setPage(powerLevel);
 
                             snapshot.update();
@@ -223,10 +232,44 @@ public class LecternTracker {
                                 + powerLevel
                                 + ChatColor.RESET);
 
+                        Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                                + "Update to the latest server software (either Spigot/Paper)!!!");
+
                         Logger.printException(exception);
                     }
                 }
             });
         }
     };
+
+    public void updatePage(Lectern lectern, Mqtt5Publish mqtt5Publish, Integer powerLevel) {
+        LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
+
+        ItemStack book;
+        BookMeta bookMeta;
+
+        try {
+            book = LecternUtilities.getItem(inventory);
+            bookMeta = LecternUtilities.getBookMeta(book);
+        } catch (InvalidLectern | InvalidBook exception) {
+            Logger.warning("RedstoneUpdate: " + exception.getMessage());
+            return;
+        }
+
+        bookMeta.setPage(1, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + LecternTrackers.getIdentifier()
+                + "\n"
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+                + "Last Message: "
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD
+                + (powerLevel + 1)
+                + "\n"
+                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+                + "From Channel: "
+                + ChatColor.DARK_RED + "" + ChatColor.BOLD
+                + mqtt5Publish.getTopic().toString());
+
+        book.setItemMeta(bookMeta);
+        inventory.setItem(0, book);
+    }
 }

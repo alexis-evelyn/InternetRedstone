@@ -1,16 +1,11 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
-import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
-import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
-import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
@@ -24,12 +19,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.SubmissionPublisher;
-import java.util.function.Consumer;
 
 public class InteractWithLectern implements Listener {
     LecternTrackers trackers;
@@ -75,7 +66,7 @@ public class InteractWithLectern implements Listener {
             }
 
             // If not marked as a special Lectern, then ignore
-            if (!LecternUtilities.hasIdentifier(bookMeta, trackers.getIdentifier()))
+            if (!LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier()))
                 return;
 
             try {

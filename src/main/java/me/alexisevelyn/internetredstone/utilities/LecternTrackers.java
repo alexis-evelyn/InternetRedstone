@@ -17,7 +17,7 @@ public class LecternTrackers {
     ConcurrentHashMap<Location, LecternTracker> trackers;
 
     // Identifier to Look For In Order To Help Track Lecterns
-    String identifier = "[Internet Redstone]";
+    final static String identifier = "[Internet Redstone]";
 
     public LecternTrackers(Main main) {
         this.main = main;
@@ -90,8 +90,8 @@ public class LecternTrackers {
         return trackers.get(location);
     }
 
-    public String getIdentifier() {
-        return this.identifier;
+    public static String getIdentifier() {
+        return identifier;
     }
 
     public ConcurrentHashMap<Location, LecternTracker> getTrackers() {
