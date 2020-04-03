@@ -8,6 +8,7 @@ import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.entity.Player;
@@ -51,23 +52,25 @@ public class InteractWithLectern implements Listener {
             LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
             Player player = event.getPlayer();
 
-            ItemStack book;
-            BookMeta bookMeta;
+            // Check if Lectern is Empty
+            if (!isLecternEmpty(inventory)) {
+                // If not empty, check item in inventory
+                // For special book
+                if (!checkLectern(inventory)) {
+                    // Return if not special book
+                    // Assuming vanilla lectern then
+                    return;
+                }
+            } else {
+                // If empty, then check hand for special book
+                // That way the player doesn't have to click twice to register the lectern
 
-            try {
-                book = LecternUtilities.getItem(inventory);
-                bookMeta = LecternUtilities.getBookMeta(book);
-            } catch (InvalidLectern exception) {
-                Logger.warning("InteractWithLectern: " + exception.getMessage());
-                return;
-            } catch (InvalidBook exception) {
-                // TODO: Detect if player is placing book in lectern!!!
-                return;
+                if (!checkHand(event)) {
+                    // Return if not special book
+                    // Assuming vanilla lectern then
+                    return;
+                }
             }
-
-            // If not marked as a special Lectern, then ignore
-            if (!LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier()))
-                return;
 
             try {
                 Location location = lectern.getLocation();
@@ -78,9 +81,61 @@ public class InteractWithLectern implements Listener {
             } catch (DuplicateObjectException exception) {
                 Logger.printException(exception);
             } catch (NullPointerException exception) {
-                Logger.severe("Failed to Initialize Lectern Tracker!!!");
+                Logger.severe("InteractWithLectern: Failed to Initialize Lectern Tracker!!!");
                 Logger.printException(exception);
             }
         }
+    }
+
+    private boolean isLecternEmpty(LecternInventory inventory) {
+        ItemStack book = null;
+
+        try {
+            book = LecternUtilities.getItem(inventory);
+        } catch (InvalidLectern invalidLectern) {
+            // Not a lectern, so false
+            return false;
+        }
+
+        // If lectern is not empty, return false
+        if (book != null) {
+            return false;
+        }
+
+        // Lectern is empty
+        return true;
+    }
+
+    private boolean checkLectern(LecternInventory inventory) {
+        ItemStack book;
+        BookMeta bookMeta;
+
+        try {
+            book = LecternUtilities.getItem(inventory);
+            bookMeta = LecternUtilities.getBookMeta(book);
+        } catch (InvalidLectern exception) {
+            Logger.warning("InteractWithLectern: " + exception.getMessage());
+            return false;
+        } catch (InvalidBook exception) {
+            return false;
+        }
+
+        // If not marked as a special Lectern, then ignore
+        if (!LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier()))
+            return false;
+
+        return true;
+    }
+
+    private boolean checkHand(PlayerInteractEvent event) {
+        BookMeta bookMeta;
+
+        try {
+            bookMeta = LecternUtilities.getBookMeta(event.getItem());
+        } catch (InvalidBook invalidBook) {
+            return false;
+        }
+
+        return true;
     }
 }
