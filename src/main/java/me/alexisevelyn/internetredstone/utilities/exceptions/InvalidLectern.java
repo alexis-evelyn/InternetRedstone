@@ -5,6 +5,7 @@ public class InvalidLectern extends Exception {
         super(message);
     }
 
+    @SuppressWarnings("unused")
     public InvalidLectern(String message, Throwable cause) {
         super(message, cause);
     }

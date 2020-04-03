@@ -6,7 +6,6 @@ import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
@@ -23,7 +22,7 @@ import org.bukkit.inventory.meta.BookMeta;
  * So, instead, I have to use a BlockPhysicsEvent and filter out all the unnecessary noise.
  */
 public class RedstoneUpdate implements Listener {
-    LecternTrackers trackers;
+    final LecternTrackers trackers;
 
     public RedstoneUpdate(LecternTrackers trackers) {
         this.trackers = trackers;
@@ -32,9 +31,6 @@ public class RedstoneUpdate implements Listener {
     // We get called last, so a claim plugin can handle their stuff before we get the event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onRedstoneUpdate(BlockPhysicsEvent event) {
-        // TODO: Prevent Lectern From Sending Out Signal When Player Flips Book Page
-        // Most Likely Disable Block Updating For Book Page Flip
-
         BlockState snapshot = event.getBlock().getState();
 
         if (snapshot instanceof Lectern) {

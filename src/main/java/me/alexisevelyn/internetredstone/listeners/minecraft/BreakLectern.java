@@ -12,7 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
 public class BreakLectern implements Listener {
-    LecternTrackers trackers;
+    final LecternTrackers trackers;
 
     public BreakLectern(LecternTrackers trackers) {
         this.trackers = trackers;

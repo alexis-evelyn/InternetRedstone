@@ -11,10 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LecternTrackers {
     // Main class used to get synchronous execution
-    Main main;
+    final Main main;
 
     // List of Tracker Objects
-    ConcurrentHashMap<Location, LecternTracker> trackers;
+    final ConcurrentHashMap<Location, LecternTracker> trackers;
 
     // Identifier to Look For In Order To Help Track Lecterns
     final static String identifier = "[Internet Redstone]";
@@ -25,6 +25,7 @@ public class LecternTrackers {
         trackers = new ConcurrentHashMap<>();
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public LecternTracker registerTracker(Location location, UUID player) throws DuplicateObjectException {
         if (trackers.containsKey(location))
             throw new DuplicateObjectException(ChatColor.GOLD + "Tracker, "

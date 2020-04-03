@@ -5,6 +5,7 @@ public class NotEnoughPages extends Exception {
         super(message);
     }
 
+    @SuppressWarnings("unused")
     public NotEnoughPages(String message, Throwable cause) {
         super(message, cause);
     }

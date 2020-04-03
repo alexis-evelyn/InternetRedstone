@@ -7,6 +7,8 @@ import java.sql.*;
 
 public class MySQLClient {
     public MySQLClient() {
+        // TODO: Create database to store registered lecterns in as well as player preferences
+
         String url = "jdbc:mysql://localhost:3306/internetredstone?useSSL=false";
         String user = "internetredstone";
 

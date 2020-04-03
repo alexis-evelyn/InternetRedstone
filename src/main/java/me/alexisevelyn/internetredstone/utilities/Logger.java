@@ -1,20 +1,19 @@
 package me.alexisevelyn.internetredstone.utilities;
 
-import io.reactivex.functions.Consumer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.util.Objects;
 
 public class Logger {
-    static String pluginID = "InternetRedstone";
+    static final String pluginID = "InternetRedstone";
     static Boolean debug = false;
 
     public static void setDebugMode(Boolean debugMode) {
         debug = debugMode;
     }
 
-    public static boolean getDebugMode() {
+    public static boolean isDebugMode() {
         return debug;
     }
 
@@ -52,7 +51,7 @@ public class Logger {
     }
 
     public static void info(String message) {
-        if (!getDebugMode())
+        if (isDebugMode())
             return;
 
         Bukkit.getLogger().info(ChatColor.DARK_PURPLE
@@ -84,8 +83,9 @@ public class Logger {
                 + message);
     }
 
+    @SuppressWarnings("unused")
     public static void config(String message) {
-        if (!getDebugMode())
+        if (isDebugMode())
             return;
 
         Bukkit.getLogger().config(ChatColor.DARK_PURPLE
@@ -97,8 +97,9 @@ public class Logger {
                 + message);
     }
 
+    @SuppressWarnings("unused")
     public static void fine(String message) {
-        if (!getDebugMode())
+        if (isDebugMode())
             return;
 
         Bukkit.getLogger().fine(ChatColor.DARK_PURPLE
@@ -110,8 +111,9 @@ public class Logger {
                 + message);
     }
 
+    @SuppressWarnings("unused")
     public static void finer(String message) {
-        if (!getDebugMode())
+        if (isDebugMode())
             return;
 
         Bukkit.getLogger().finer(ChatColor.DARK_PURPLE
@@ -123,8 +125,9 @@ public class Logger {
                 + message);
     }
 
+    @SuppressWarnings("unused")
     public static void finest(String message) {
-        if (!getDebugMode())
+        if (isDebugMode())
             return;
 
         Bukkit.getLogger().finest(ChatColor.DARK_PURPLE

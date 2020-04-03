@@ -5,6 +5,7 @@ public class MissingObjectException extends Exception {
         super(message);
     }
 
+    @SuppressWarnings("unused")
     public MissingObjectException(String message, Throwable cause) {
         super(message, cause);
     }

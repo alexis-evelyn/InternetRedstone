@@ -15,23 +15,26 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Objects;
 
 public final class Main extends JavaPlugin {
-    MySQLClient client;
     LecternTrackers trackers;
 
     @Override
     public void onEnable() {
+        // Determine whether or not to output debug information
         Logger.setDebugMode(true);
 
-        // Plugin startup logic
+        // Register error handler for asynchronous functions
         RxJavaPlugins.setErrorHandler(Logger::rxHandler);
 
+        // Register lectern trackers class
         trackers = new LecternTrackers(this);
 
+        // Register Bukkit Event Listeners
         getServer().getPluginManager().registerEvents(new RedstoneUpdate(trackers), this);
         getServer().getPluginManager().registerEvents(new InteractWithLectern(trackers), this);
         getServer().getPluginManager().registerEvents(new TakeBook(trackers), this);
         getServer().getPluginManager().registerEvents(new BreakLectern(trackers), this);
 
+        // Register Bukkit Commands
         try {
             PluginCommand lecterns = getCommand("lecterns");
             Objects.requireNonNull(lecterns).setExecutor(new Commands(trackers));
@@ -39,7 +42,8 @@ public final class Main extends JavaPlugin {
             Logger.printException(exception);
         }
 
-        client = new MySQLClient();
+        // Register MySQL Client
+        new MySQLClient();
     }
 
     @Override

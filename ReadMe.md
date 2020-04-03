@@ -1,6 +1,6 @@
 # Future ReadMe Here!!!
 
-# Useful Javadocs
+# Useful Java Documentation
 * Block - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/block/Lectern.html
 * Block Data Type - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/block/data/type/Lectern.html
 * Lectern Inventory - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/inventory/LecternInventory.html

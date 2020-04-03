@@ -1,6 +1,5 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
@@ -11,7 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 
 public class TakeBook implements Listener {
-    LecternTrackers trackers;
+    final LecternTrackers trackers;
 
     public TakeBook(LecternTrackers trackers) {
         this.trackers = trackers;

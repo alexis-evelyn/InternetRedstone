@@ -5,6 +5,7 @@ public class InvalidBook extends Exception {
         super(message);
     }
 
+    @SuppressWarnings("unused")
     public InvalidBook(String message, Throwable cause) {
         super(message, cause);
     }

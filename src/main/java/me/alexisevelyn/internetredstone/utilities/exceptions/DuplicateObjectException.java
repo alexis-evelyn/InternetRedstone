@@ -5,6 +5,7 @@ public class DuplicateObjectException extends Exception {
         super(message);
     }
 
+    @SuppressWarnings("unused")
     public DuplicateObjectException(String message, Throwable cause) {
         super(message, cause);
     }

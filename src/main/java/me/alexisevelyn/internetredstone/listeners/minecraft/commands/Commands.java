@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Commands implements CommandExecutor {
-    LecternTrackers trackers;
+    final LecternTrackers trackers;
 
     public Commands(LecternTrackers trackers) {
         this.trackers = trackers;

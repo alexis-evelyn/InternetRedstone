@@ -8,7 +8,6 @@ import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.entity.Player;
@@ -25,7 +24,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class InteractWithLectern implements Listener {
-    LecternTrackers trackers;
+    final LecternTrackers trackers;
 
     public InteractWithLectern(LecternTrackers trackers) {
         this.trackers = trackers;
@@ -89,7 +88,7 @@ public class InteractWithLectern implements Listener {
     }
 
     private boolean isLecternEmpty(LecternInventory inventory) {
-        ItemStack book = null;
+        ItemStack book;
 
         try {
             book = LecternUtilities.getItem(inventory);
@@ -99,12 +98,7 @@ public class InteractWithLectern implements Listener {
         }
 
         // If lectern is not empty, return false
-        if (book != null) {
-            return false;
-        }
-
-        // Lectern is empty
-        return true;
+        return book == null;
     }
 
     private boolean checkLectern(LecternInventory inventory) {
@@ -122,17 +116,12 @@ public class InteractWithLectern implements Listener {
         }
 
         // If not marked as a special Lectern, then ignore
-        if (!LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier()))
-            return false;
-
-        return true;
+        return LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier());
     }
 
     private boolean checkHand(PlayerInteractEvent event) {
-        BookMeta bookMeta;
-
         try {
-            bookMeta = LecternUtilities.getBookMeta(event.getItem());
+            LecternUtilities.getBookMeta(event.getItem());
         } catch (InvalidBook invalidBook) {
             return false;
         }

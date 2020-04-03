@@ -26,6 +26,7 @@ import org.bukkit.block.Lectern;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -33,21 +34,25 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class LecternTracker {
-    // Main class used to get synchronous execution
+    // Main class used to get synchronous execution (Don't Mark as Final Here)
+    @SuppressWarnings("CanBeFinal")
     Main main;
+
     // Used to track the location of the lectern. Includes the world object too!
-    Location location;
+    final Location location;
+
     // Used to track the player who owns the lectern. Will aid in allowing using that player's settings.
+    @SuppressWarnings("unused")
+    final
     UUID player;
+
     // Used to prevent duplicate signals from being sent
     Integer lastKnownSignal = -1;
-    // Used to prevent updating ourselves
-    Boolean justUpdated = false;
 
     MQTTClient client;
     CompletableFuture<Mqtt5ConnAck> connection;
 
-    public LecternTracker(Main main, Location location, UUID player) {
+    public LecternTracker(@NotNull Main main, Location location, UUID player) {
         this.location = location;
         this.player = player;
         this.main = main;
@@ -83,6 +88,7 @@ public class LecternTracker {
     // Choose your method of registry. For Multiple Topics, I Recommend The ImmutableList Method
     // For A Single Topic, I Recommend The String Method
     // For Full Control, Use The MqttSubscribe Method
+    @SuppressWarnings("unused")
     public void subscribe(ImmutableList<MqttSubscription> subscriptions, Consumer<Mqtt5Publish> callback) {
         MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
         MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
@@ -92,23 +98,8 @@ public class LecternTracker {
 
     public void subscribe(String topic_string, Consumer<Mqtt5Publish> callback) {
         MqttTopicFilterImpl topic = MqttTopicFilterImpl.of(topic_string); // The Topic To Subscribe To
-        MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
-        boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
 
-        // Docs For Mqtt5RetainHandling - https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104
-        Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
-        boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
-
-        MqttSubscription redstone = new MqttSubscription(topic, qos, noLocal, retainHandling, retainAsPublished); // A Subscription To Subscribe To
-        ImmutableList<MqttSubscription> subscriptions = ImmutableList.of(redstone); // A List of Subscriptions To Subscribe To
-
-        // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901054
-        // https://blog.codecentric.de/en/2017/11/hello-mqtt-version-5-0/
-        MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
-
-        MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
-
-        subscribe(subscription, callback);
+        subscribe(topic, callback);
     }
 
     public void subscribe(MqttTopicFilterImpl topic, Consumer<Mqtt5Publish> callback) {
@@ -119,6 +110,7 @@ public class LecternTracker {
         Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
         boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
 
+        @SuppressWarnings("ConstantConditions")
         MqttSubscription redstone = new MqttSubscription(topic, qos, noLocal, retainHandling, retainAsPublished); // A Subscription To Subscribe To
         ImmutableList<MqttSubscription> subscriptions = ImmutableList.of(redstone); // A List of Subscriptions To Subscribe To
 
@@ -151,30 +143,23 @@ public class LecternTracker {
         this.lastKnownSignal = lastKnownSignal;
     }
 
-    public boolean getJustUpdated() {
-        Logger.info("Get Just Updated!!!");
-        return justUpdated;
-    }
-
-    public void setJustUpdated(Boolean justUpdated) {
-        Logger.info("Set Just Updated: " + justUpdated);
-        this.justUpdated = justUpdated;
-    }
-
+    @SuppressWarnings("unused")
     public Location getLocation() {
         return location;
     }
 
+    @SuppressWarnings("unused")
     public MQTTClient getClient() {
         return client;
     }
 
+    @SuppressWarnings("unused")
     public CompletableFuture<Mqtt5ConnAck> getConnection() {
         return connection;
     }
 
     // Function To Run Asynchronously When Message is Received
-    Consumer<Mqtt5Publish> callback = mqtt5Publish -> {
+    final Consumer<Mqtt5Publish> callback = mqtt5Publish -> {
         String decoded = new String(mqtt5Publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
 
         Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
@@ -210,11 +195,11 @@ public class LecternTracker {
                         if (snapshot instanceof Lectern) {
                             Lectern lectern = (Lectern) snapshot;
 
-//                            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-//                                    + "Current Page Is: "
-//                                    + ChatColor.AQUA + "" + ChatColor.BOLD
-//                                    + lectern.getPage()
-//                                    + ChatColor.RESET);
+                            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+                                    + "Current Page Is: "
+                                    + ChatColor.AQUA + "" + ChatColor.BOLD
+                                    + lectern.getPage()
+                                    + ChatColor.RESET);
 
                             // Update First Page In Book
                             // Must be performed before setting the page number!!!
@@ -236,8 +221,6 @@ public class LecternTracker {
                                 return;
                             }
 
-                            // TODO: Check to ensure at least 15 pages are in book!!!
-                            // TODO: And that there is a book.
                             lectern.setPage(powerLevel);
 
                             snapshot.update();
