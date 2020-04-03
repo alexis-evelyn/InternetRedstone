@@ -1,6 +1,7 @@
 package me.alexisevelyn.internetredstone.database.mysql;
 
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.sql.*;

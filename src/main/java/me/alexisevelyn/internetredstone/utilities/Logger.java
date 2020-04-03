@@ -51,7 +51,7 @@ public class Logger {
     }
 
     public static void info(String message) {
-        if (isDebugMode())
+        if (!isDebugMode())
             return;
 
         Bukkit.getLogger().info(ChatColor.DARK_PURPLE
@@ -85,7 +85,7 @@ public class Logger {
 
     @SuppressWarnings("unused")
     public static void config(String message) {
-        if (isDebugMode())
+        if (!isDebugMode())
             return;
 
         Bukkit.getLogger().config(ChatColor.DARK_PURPLE
@@ -99,7 +99,7 @@ public class Logger {
 
     @SuppressWarnings("unused")
     public static void fine(String message) {
-        if (isDebugMode())
+        if (!isDebugMode())
             return;
 
         Bukkit.getLogger().fine(ChatColor.DARK_PURPLE
@@ -113,7 +113,7 @@ public class Logger {
 
     @SuppressWarnings("unused")
     public static void finer(String message) {
-        if (isDebugMode())
+        if (!isDebugMode())
             return;
 
         Bukkit.getLogger().finer(ChatColor.DARK_PURPLE
@@ -127,7 +127,7 @@ public class Logger {
 
     @SuppressWarnings("unused")
     public static void finest(String message) {
-        if (isDebugMode())
+        if (!isDebugMode())
             return;
 
         Bukkit.getLogger().finest(ChatColor.DARK_PURPLE
