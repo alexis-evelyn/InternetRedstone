@@ -9,12 +9,39 @@
     <version>0.0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>InternetRedstone</name>
+    <name>Internet Redstone</name>
+    <description>Send and Receive Redstone Signals over MQTT!!!</description>
 
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <!-- Removed "source:jar javadoc:jar" from defaultGoal -->
+                <defaultGoal>clean deploy</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
@@ -48,7 +75,7 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <shadeSourcesContent>true</shadeSourcesContent>
-                            <createSourcesJar>true</createSourcesJar>
+                            <createSourcesJar>false</createSourcesJar>
                             <relocations>
                                 <!-- Some Dependencies Have A LOT of Other Dependencies -->
                                 <!-- To Prevent Class Loading Conflicts - You'll Want To Make Sure They Are All Shaded -->
@@ -107,6 +134,15 @@
                 </executions>
             </plugin>
         </plugins>
+
+        <extensions>
+            <extension>
+                <groupId>io.packagecloud.maven.wagon</groupId>
+                <artifactId>maven-packagecloud-wagon</artifactId>
+                <version>0.0.6</version>
+            </extension>
+        </extensions>
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -122,18 +158,30 @@
         </repository>
         <repository>
             <id>CodeMC</id>
-            <url>https://repo.codemc.org/repository/maven-public</url>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <!-- The Minecraft Server API - Provided For Us At Runtime -->
+            <!-- Comes from papermc-repo -->
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <!-- Comes from CodeMC -->
+            <!-- bStats doesn't include the proper sources marker, so Maven will throw a warning about failing to find it -->
+            <!-- The marker is missing from https://repo.codemc.io/repository/maven-public/org/bstats/bstats-bukkit/1.7/bstats-bukkit-1.7.pom -->
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>1.7</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- All the below come from the central maven repository and not a custom one -->
         <dependency>
             <!-- The MQTT Library - Compile Into The Jar -->
             <groupId>com.hivemq</groupId>
@@ -162,11 +210,16 @@
             <version>1.18.12</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>1.7</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>packagecloud-minecraft</id>
+            <url>packagecloud+https://packagecloud.io/AlexisEvelyn/Minecraft</url>
+        </repository>
+        <snapshotRepository>
+            <id>packagecloud-minecraft</id>
+            <url>packagecloud+https://packagecloud.io/AlexisEvelyn/Minecraft</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

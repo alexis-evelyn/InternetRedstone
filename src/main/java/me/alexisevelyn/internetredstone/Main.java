@@ -15,6 +15,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 public final class Main extends JavaPlugin {
     LecternTrackers trackers;
@@ -66,12 +67,14 @@ public final class Main extends JavaPlugin {
         metrics = new Metrics(this, pluginId);
 
         // Optional: Add custom charts
-//        metrics.addCustomChart(new Metrics.SimplePie("chart_id", () -> "My value"));
+        metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_lecterns", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                // Retrieves Number of Registered Lecterns - Nothing Else, Just The Number
+                return String.valueOf(trackers.getTrackers().size());
+            }
+        }));
 
         return metrics.isEnabled();
-    }
-
-    protected Metrics getbStats() {
-        return metrics;
     }
 }
