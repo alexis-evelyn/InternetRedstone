@@ -57,7 +57,11 @@ public class Commands implements CommandExecutor {
                     + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
                     + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
                     + location.getBlockZ()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")");
+                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
+
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + " - "
+                    + trackerMap.get(location).getTopic_uuid());
         }
     }
 }

@@ -13,6 +13,7 @@ import com.hivemq.client.mqtt.mqtt5.exceptions.Mqtt5ConnAckException;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
+import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
@@ -54,6 +55,9 @@ public class LecternTracker {
     MQTTClient client;
     CompletableFuture<Mqtt5ConnAck> connection;
 
+    String topic_uuid;
+    String topic_ign;
+
     public LecternTracker(@NotNull Main main, Location location, UUID player) {
         this.location = location;
         this.player = player;
@@ -67,14 +71,14 @@ public class LecternTracker {
 
         // Temporary Means of Generating Semi-Unique IDs for Testing
         Random temporary = new Random();
-        int temporary_random_number = temporary.nextInt();
+        int temporary_random_number = temporary.nextInt(100);
 
         try {
             client = new MQTTClient(player, broker);
             connection = client.connect();
 
             // List of Topics to Subscribe To
-            String topic_uuid = server_name + "/" + player + "/" + temporary_random_number; // Topic based on player's uuid
+            topic_uuid = server_name + "/" + player + "/" + temporary_random_number; // Topic based on player's uuid
 
             // ArrayList of Topics to Subscribe To
             ArrayList<String> topics = new ArrayList<>();
@@ -83,14 +87,12 @@ public class LecternTracker {
             // Get Player's Name if Possible, Otherwise, Just Stick With UUID
             Player online_player = Bukkit.getPlayer(player);
             if (online_player != null) {
-                String player_name = online_player.getName();
-
-                String topic_ign = server_name + "/" + player_name + "/" + temporary_random_number; // Topic based on player's ign
+                topic_ign = server_name + "/" + online_player.getName() + "/" + temporary_random_number; // Topic based on player's ign
                 topics.add(topic_ign);
             }
 
             // Subscribe to Topics through ArrayList method
-            subscribe(topics, callback);
+            connection.thenAccept(read -> subscribe(topics, callback));
 
         } catch (ConnectionFailedException exception) {
             Logger.severe("Failed to even send the connect message!!!");
@@ -105,16 +107,20 @@ public class LecternTracker {
     }
 
     public void sendRedstoneUpdate(Integer signal) {
-        String topic = "alexis/redstone/lectern";
         byte[] payload = signal.toString().getBytes();
 
-        client.sendMessage(topic, payload, MqttQos.EXACTLY_ONCE);
+        // Send Message To Topic With UUID
+        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
+
+        // Send Message To Topic With IGM - Topic may be null here
+        if (getTopic_ign() != null) {
+            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
+        }
     }
 
     // Choose your method of registry. For Multiple Topics, I Recommend The ImmutableList Method
     // For A Single Topic, I Recommend The String Method
     // For Full Control, Use The MqttSubscribe Method
-    @SuppressWarnings("unused")
     private void subscribe(ArrayList<String> topic_strings, Consumer<Mqtt5Publish> callback) {
         // This is designed to keep the Constructor Clean
         MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
@@ -125,9 +131,15 @@ public class LecternTracker {
         boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
 
         ArrayList<MqttSubscription> subscriptionsList = new ArrayList<>();
-        for (String topic_string : topic_strings)
+        for (String topic_string : topic_strings) {
+            Logger.finer(ChatColor.GOLD + "" + ChatColor.BOLD
+                    + "Topics to Subscribe: "
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + topic_string);
+
             //noinspection ConstantConditions
             subscriptionsList.add(new MqttSubscription(MqttTopicFilterImpl.of(topic_string), qos, noLocal, retainHandling, retainAsPublished));
+        }
 
         ImmutableList<MqttSubscription> subscriptions = ImmutableList.copyOf(subscriptionsList); // A List of Subscriptions To Subscribe To
 
@@ -135,7 +147,6 @@ public class LecternTracker {
     }
 
     // Passing In Multiple Subscriptions (Topics and Settings) In One Subscription
-    @SuppressWarnings("unused")
     public void subscribe(ImmutableList<MqttSubscription> subscriptions, Consumer<Mqtt5Publish> callback) {
         MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
         MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
@@ -144,6 +155,7 @@ public class LecternTracker {
     }
 
     // Passing In A Single Topic String
+    @SuppressWarnings("unused")
     public void subscribe(String topic_string, Consumer<Mqtt5Publish> callback) {
         MqttTopicFilterImpl topic = MqttTopicFilterImpl.of(topic_string); // The Topic To Subscribe To
 
@@ -174,7 +186,15 @@ public class LecternTracker {
 
     // Ultimately Called Subscribe Function
     public void subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
-        client.subscribe(subscription, callback); // Subscribe To Topics And Send Results To Callback Asynchronously
+        CompletableFuture<Mqtt5SubAck> subscribed = client.subscribe(subscription, callback); // Subscribe To Topics And Send Results To Callback Asynchronously
+
+        // I'm suppressing the single line lambda warning as I'm going to eventually add in more logger lines
+        // TODO: Add more logger lines to help with debugging in the future. Also figure out how to determine if connected or not!!!
+        //noinspection CodeBlock2Expr
+        subscribed.thenAcceptAsync(mqtt5SubAck -> {
+            Logger.finer("Subscribed Reason (Debug): "
+                    + mqtt5SubAck.getReasonString());
+        });
     }
 
     public void cleanup() {
@@ -206,6 +226,15 @@ public class LecternTracker {
     @SuppressWarnings("unused")
     public CompletableFuture<Mqtt5ConnAck> getConnection() {
         return connection;
+    }
+
+    public String getTopic_uuid() {
+        return topic_uuid;
+    }
+
+    @SuppressWarnings("unused")
+    public String getTopic_ign() {
+        return topic_ign;
     }
 
     // Function To Run Asynchronously When Message is Received

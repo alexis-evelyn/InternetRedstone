@@ -60,6 +60,14 @@ public class MQTTClient {
 
     @SuppressWarnings("UnusedReturnValue")
     public CompletableFuture<Mqtt5SubAck> subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
+        // For Super Debug - List All Subscribed Topics Every Time Ready to Subscribe
+//        if (Logger.isDebugMode())
+//            for (MqttSubscription line : subscription.getSubscriptions().trim()) // .trim() seems to strip everything, find a way to get an iterable list
+//                Logger.finer(ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+//                        + "Topics To Subscribe: "
+//                        + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+//                        + line.getTopicFilter().toString());
+
         return client.subscribe(subscription, callback);
     }
 }
