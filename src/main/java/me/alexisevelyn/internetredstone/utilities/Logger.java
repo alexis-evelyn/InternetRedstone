@@ -13,6 +13,7 @@ public class Logger {
         debug = debugMode;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isDebugMode() {
         return debug;
     }

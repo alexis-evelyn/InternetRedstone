@@ -23,12 +23,15 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -59,12 +62,36 @@ public class LecternTracker {
         // This string will be read from Player's Config Or If None Provided, Server's Config
         String broker = "broker.hivemq.com";
 
+        // Temporarily Hardcoded Server Value for Testing
+        String server_name = "alexis";
+
+        // Temporary Means of Generating Semi-Unique IDs for Testing
+        Random temporary = new Random();
+        int temporary_random_number = temporary.nextInt();
+
         try {
             client = new MQTTClient(player, broker);
             connection = client.connect();
 
-            // Untested
-            connection.thenAccept(read -> subscribe("alexis/redstone/lectern", callback));
+            // List of Topics to Subscribe To
+            String topic_uuid = server_name + "/" + player + "/" + temporary_random_number; // Topic based on player's uuid
+
+            // ArrayList of Topics to Subscribe To
+            ArrayList<String> topics = new ArrayList<>();
+            topics.add(topic_uuid);
+
+            // Get Player's Name if Possible, Otherwise, Just Stick With UUID
+            Player online_player = Bukkit.getPlayer(player);
+            if (online_player != null) {
+                String player_name = online_player.getName();
+
+                String topic_ign = server_name + "/" + player_name + "/" + temporary_random_number; // Topic based on player's ign
+                topics.add(topic_ign);
+            }
+
+            // Subscribe to Topics through ArrayList method
+            subscribe(topics, callback);
+
         } catch (ConnectionFailedException exception) {
             Logger.severe("Failed to even send the connect message!!!");
         } catch (ConnectionClosedException exception) {
@@ -88,6 +115,27 @@ public class LecternTracker {
     // For A Single Topic, I Recommend The String Method
     // For Full Control, Use The MqttSubscribe Method
     @SuppressWarnings("unused")
+    private void subscribe(ArrayList<String> topic_strings, Consumer<Mqtt5Publish> callback) {
+        // This is designed to keep the Constructor Clean
+        MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
+        boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
+
+        // Docs For Mqtt5RetainHandling - https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104
+        Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
+        boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
+
+        ArrayList<MqttSubscription> subscriptionsList = new ArrayList<>();
+        for (String topic_string : topic_strings)
+            //noinspection ConstantConditions
+            subscriptionsList.add(new MqttSubscription(MqttTopicFilterImpl.of(topic_string), qos, noLocal, retainHandling, retainAsPublished));
+
+        ImmutableList<MqttSubscription> subscriptions = ImmutableList.copyOf(subscriptionsList); // A List of Subscriptions To Subscribe To
+
+        subscribe(subscriptions, callback);
+    }
+
+    // Passing In Multiple Subscriptions (Topics and Settings) In One Subscription
+    @SuppressWarnings("unused")
     public void subscribe(ImmutableList<MqttSubscription> subscriptions, Consumer<Mqtt5Publish> callback) {
         MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
         MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
@@ -95,12 +143,14 @@ public class LecternTracker {
         subscribe(subscription, callback);
     }
 
+    // Passing In A Single Topic String
     public void subscribe(String topic_string, Consumer<Mqtt5Publish> callback) {
         MqttTopicFilterImpl topic = MqttTopicFilterImpl.of(topic_string); // The Topic To Subscribe To
 
         subscribe(topic, callback);
     }
 
+    // Passing In A Single MqttTopicFilterImpl Directly
     public void subscribe(MqttTopicFilterImpl topic, Consumer<Mqtt5Publish> callback) {
         MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
         boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
@@ -122,6 +172,7 @@ public class LecternTracker {
         subscribe(subscription, callback);
     }
 
+    // Ultimately Called Subscribe Function
     public void subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
         client.subscribe(subscription, callback); // Subscribe To Topics And Send Results To Callback Asynchronously
     }

@@ -2,7 +2,7 @@ name: InternetRedstone
 prefix: Internet Redstone
 version: ${project.version}
 main: me.alexisevelyn.internetredstone.Main
-api-version: 1.13
+api-version: "1.13"
 load: POSTWORLD
 
 # Commands and Base Permissions
