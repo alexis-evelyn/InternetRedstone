@@ -6,7 +6,7 @@
 
     <groupId>me.alexisevelyn</groupId>
     <artifactId>internetredstone</artifactId>
-    <version>0.0.5-SNAPSHOT</version>
+    <version>0.0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>InternetRedstone</name>
@@ -47,6 +47,57 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadeSourcesContent>true</shadeSourcesContent>
+                            <createSourcesJar>true</createSourcesJar>
+                            <relocations>
+                                <!-- Some Dependencies Have A LOT of Other Dependencies -->
+                                <!-- To Prevent Class Loading Conflicts - You'll Want To Make Sure They Are All Shaded -->
+                                <relocation>
+                                    <pattern>com.hivemq</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.hivemq</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- Should I Shade A JBDC Connector? -->
+                                    <pattern>com.mysql</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.mysql</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.hivemq</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.hivemq</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.google</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>dagger</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.dagger</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>google.protobuf</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.protobuf</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.netty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.reactivex</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.reactivex</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>javax.inject</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.inject</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.jctools</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.jctools</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.reactivestreams</pattern>
+                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.reactivestreams</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -65,35 +116,39 @@
             <id>papermc-repo</id>
             <url>https://papermc.io/repo/repository/maven-public/</url>
         </repository>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
+            <!-- The Minecraft Server API - Provided For Us At Runtime -->
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- The MQTT Library - Compile Into The Jar -->
             <groupId>com.hivemq</groupId>
             <artifactId>hivemq-mqtt-client</artifactId>
             <version>1.1.4</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
+            <!-- Debugging Annotations - Not Needed For Runtime (Except For Debugging) -->
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>16.0.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- MySQL Connector - Not Needed For Compilation, But Needed At Runtime (Compiled Into Jar) -->
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.19</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
+            <!-- Reduce Boilerplate Code - Not Needed For Runtime (Hooks Into IDE/Compiler) -->
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.12</version>

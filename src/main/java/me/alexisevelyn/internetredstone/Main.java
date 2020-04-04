@@ -19,6 +19,8 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // TODO: Add Bstats
+
         // Determine whether or not to output debug information
         Logger.setDebugMode(true);
 
