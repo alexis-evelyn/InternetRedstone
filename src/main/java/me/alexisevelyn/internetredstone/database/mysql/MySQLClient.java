@@ -19,6 +19,11 @@ public class MySQLClient {
         String query = "SELECT VERSION()";
 
         try {
+            // Load and Register the MySQL JBDC Driver If Available
+            // This shouldn't be necessary anymore, but it won't hurt having this
+            Class.forName("com.mysql.jdbc.Driver");
+
+            // Setup MySQL Connection
             Connection con = DriverManager.getConnection(url, user, password);
             Statement st = con.createStatement();
             ResultSet rs = st.executeQuery(query);
@@ -29,6 +34,26 @@ public class MySQLClient {
                         + rs.getString(1));
             }
         } catch (SQLException exception) {
+            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                            + "SQL State: "
+                            + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                            + exception.getSQLState());
+
+            Logger.printException(exception);
+        } catch (ClassNotFoundException exception) {
+            // This should never run as long as the MySQL package is not shaded!!!
+
+            // Connector/J - https://dev.mysql.com/downloads/connector/j/
+            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                    + "Could Not Find JBDC Driver 'com.mysql.jdbc.Driver': "
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + exception.getMessage());
+
+            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                    + "Do you not have Connector/J installed? Download it at: "
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + "https://dev.mysql.com/downloads/connector/j/");
+
             Logger.printException(exception);
         }
     }

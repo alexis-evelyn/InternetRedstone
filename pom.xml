@@ -6,7 +6,7 @@
 
     <groupId>me.alexisevelyn</groupId>
     <artifactId>internetredstone</artifactId>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.0.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Internet Redstone</name>
@@ -83,47 +83,38 @@
                                     <pattern>com.hivemq</pattern>
                                     <shadedPattern>me.alexisevelyn.internetredstone.shaded.hivemq</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <!-- Should I Shade A JBDC Connector? -->
-                                    <pattern>com.mysql</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.mysql</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.hivemq</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.hivemq</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.google</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>dagger</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.dagger</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>google.protobuf</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.protobuf</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.netty</shadedPattern>
-                                </relocation>
+<!--                                <relocation>-->
+<!--                                    <pattern>com.google</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.google</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>dagger</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.dagger</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>google.protobuf</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.protobuf</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>io.netty</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.netty</shadedPattern>-->
+<!--                                </relocation>-->
                                 <relocation>
                                     <pattern>io.reactivex</pattern>
                                     <shadedPattern>me.alexisevelyn.internetredstone.shaded.reactivex</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>javax.inject</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.inject</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.jctools</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.jctools</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.reactivestreams</pattern>
-                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.reactivestreams</shadedPattern>
-                                </relocation>
+<!--                                <relocation>-->
+<!--                                    <pattern>javax.inject</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.inject</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>org.jctools</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.jctools</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>org.reactivestreams</pattern>-->
+<!--                                    <shadedPattern>me.alexisevelyn.internetredstone.shaded.reactivestreams</shadedPattern>-->
+<!--                                </relocation>-->
                                 <relocation>
                                     <pattern>org.bstats</pattern>
                                     <shadedPattern>me.alexisevelyn.internetredstone.shaded.bstats</shadedPattern>
