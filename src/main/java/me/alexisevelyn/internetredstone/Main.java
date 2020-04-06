@@ -17,15 +17,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
-public final class Main extends JavaPlugin {
+public class Main extends JavaPlugin {
     LecternTrackers trackers;
     Metrics metrics;
     Integer pluginId = 7001;
+
+    MySQLClient client;
 
     @Override
     public void onEnable() {
         // Determine whether or not to output debug information
         Logger.setDebugMode(true);
+
+        // Register MySQL Client
+        client = new MySQLClient();
 
         // Register bStats
         Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
@@ -52,9 +57,6 @@ public final class Main extends JavaPlugin {
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }
-
-        // Register MySQL Client
-        new MySQLClient();
     }
 
     @Override
@@ -76,5 +78,9 @@ public final class Main extends JavaPlugin {
         }));
 
         return metrics.isEnabled();
+    }
+
+    public MySQLClient getMySQLClient() {
+        return client;
     }
 }

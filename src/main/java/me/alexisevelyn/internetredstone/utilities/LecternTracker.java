@@ -15,6 +15,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import me.alexisevelyn.internetredstone.Main;
+import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
@@ -58,20 +59,26 @@ public class LecternTracker {
     String topic_uuid;
     String topic_ign;
 
+    MySQLClient mySQLClient;
+    String broker;
+    Integer temporary_random_number;
+
     public LecternTracker(@NotNull Main main, Location location, UUID player) {
         this.location = location;
         this.player = player;
         this.main = main;
 
+        this.mySQLClient = main.getMySQLClient();
+
         // This string will be read from Player's Config Or If None Provided, Server's Config
-        String broker = "broker.hivemq.com";
+        broker = "broker.hivemq.com";
 
         // Temporarily Hardcoded Server Value for Testing
         String server_name = "alexis";
 
         // Temporary Means of Generating Semi-Unique IDs for Testing
         Random temporary = new Random();
-        int temporary_random_number = temporary.nextInt(100);
+        temporary_random_number = temporary.nextInt(100);
 
         try {
             client = new MQTTClient(player, broker);
@@ -92,8 +99,8 @@ public class LecternTracker {
             }
 
             // Subscribe to Topics through ArrayList method
-            connection.thenAccept(read -> subscribe(topics, callback));
-
+            // For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
+            connection.thenAccept(read -> subscribe(topics, callback)).thenAccept(mysql -> addDatabaseEntry());
         } catch (ConnectionFailedException exception) {
             Logger.severe("Failed to even send the connect message!!!");
         } catch (ConnectionClosedException exception) {
@@ -116,6 +123,12 @@ public class LecternTracker {
         if (getTopic_ign() != null) {
             client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
         }
+    }
+
+    private void addDatabaseEntry() {
+        // TODO: Add String for username, password, and ign!!!
+        mySQLClient.storeUserPreferences(broker, null, null, player, null, getLastKnownPower());
+        mySQLClient.registerLectern(player, location, String.valueOf(temporary_random_number), lastKnownSignal);
     }
 
     // Choose your method of registry. For Multiple Topics, I Recommend The ImmutableList Method
