@@ -81,7 +81,9 @@ public class InteractWithLectern implements Listener {
             } catch (DuplicateObjectException exception) {
                 Logger.printException(exception);
             } catch (NullPointerException exception) {
-                Logger.severe("InteractWithLectern: Failed to Initialize Lectern Tracker!!!");
+                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                        + "InteractWithLectern: Failed to Initialize Lectern Tracker!!!");
+
                 Logger.printException(exception);
             }
         }

@@ -78,7 +78,9 @@ public class LecternTracker extends Tracker {
 
             // Subscribe to Topics through ArrayList method
             // For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
-            client.getConnection().thenAccept(read -> client.subscribe(topics, callback)).thenAccept(mysql -> addDatabaseEntry());
+            client.getConnection()
+                    .thenAccept(read -> client.subscribe(topics, callback))
+                    .thenAccept(mysql -> addDatabaseEntry());
         } catch (ConnectionFailedException exception) {
             Logger.severe("Failed to even send the connect message!!!");
         } catch (ConnectionClosedException exception) {

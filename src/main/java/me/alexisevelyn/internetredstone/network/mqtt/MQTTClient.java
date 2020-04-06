@@ -28,14 +28,20 @@ public class MQTTClient {
     String broker;
 
     public MQTTClient(UUID player_uuid, String broker) {
-        writeInfo(ChatColor.GOLD + "Registered Client For: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + player_uuid);
+        writeInfo(ChatColor.GOLD + "" + ChatColor.BOLD
+                + "Registered Client For: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + player_uuid);
 
-        writeInfo(ChatColor.GOLD + "With Broker: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + broker);
+        writeInfo(ChatColor.GOLD + "" + ChatColor.BOLD
+                + "With Broker: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + broker);
 
         this.broker = broker;
+
         client = Mqtt5Client.builder().serverHost(broker).buildAsync();
+        connection = client.connect();
     }
 
     public String getBroker() {
@@ -43,11 +49,6 @@ public class MQTTClient {
     }
 
     public CompletableFuture<Mqtt5ConnAck> getConnection() {
-        return connection;
-    }
-
-    public CompletableFuture<Mqtt5ConnAck> connect() {
-        connection = client.connect();
         return connection;
     }
 
