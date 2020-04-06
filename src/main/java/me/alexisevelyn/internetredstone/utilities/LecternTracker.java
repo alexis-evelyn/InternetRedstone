@@ -41,6 +41,7 @@ public class LecternTracker extends Tracker {
     String topic_uuid;
     String topic_ign;
 
+    MQTTClient client;
     MySQLClient mySQLClient;
 
     public LecternTracker(@NotNull Main main, Location location, UUID player) {
@@ -50,9 +51,6 @@ public class LecternTracker extends Tracker {
         this.main = main;
         this.mySQLClient = main.getMySQLClient();
 
-        // This string will be read from Player's Config Or If None Provided, Server's Config
-        setBroker("broker.hivemq.com");
-
         // Temporarily Hardcoded Server Value for Testing
         String server_name = "alexis";
 
@@ -61,7 +59,8 @@ public class LecternTracker extends Tracker {
         lecternID = String.valueOf(temporary.nextInt(100));
 
         try {
-            setClient(new MQTTClient(player, getBroker()));
+            // This string will be read from Player's Config Or If None Provided, Server's Config
+            client = new MQTTClient(player, "broker.hivemq.com");
 
             // List of Topics to Subscribe To
             topic_uuid = server_name + "/" + player + "/" + getLecternID(); // Topic based on player's uuid
@@ -79,7 +78,7 @@ public class LecternTracker extends Tracker {
 
             // Subscribe to Topics through ArrayList method
             // For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
-            getConnection().thenAccept(read -> subscribe(topics, callback)).thenAccept(mysql -> addDatabaseEntry());
+            client.getConnection().thenAccept(read -> client.subscribe(topics, callback)).thenAccept(mysql -> addDatabaseEntry());
         } catch (ConnectionFailedException exception) {
             Logger.severe("Failed to even send the connect message!!!");
         } catch (ConnectionClosedException exception) {
@@ -96,17 +95,17 @@ public class LecternTracker extends Tracker {
         byte[] payload = signal.toString().getBytes();
 
         // Send Message To Topic With UUID
-        sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
+        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
 
         // Send Message To Topic With IGM - Topic may be null here
         if (getTopic_ign() != null) {
-            sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
+            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
         }
     }
 
     private void addDatabaseEntry() {
         // TODO: Add String for username, password, and ign!!!
-        mySQLClient.storeUserPreferences(getBroker(), null, null, getPlayer(), null, getLastKnownPower());
+        mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, getLastKnownPower());
         mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
     }
 
@@ -252,5 +251,11 @@ public class LecternTracker extends Tracker {
 
         book.setItemMeta(bookMeta);
         inventory.setItem(0, book);
+    }
+
+    @Override
+    public void cleanup() {
+        client.disconnect();
+        mySQLClient.disconnect();
     }
 }

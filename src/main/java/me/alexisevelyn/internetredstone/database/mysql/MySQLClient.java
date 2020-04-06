@@ -6,6 +6,7 @@ import org.bukkit.Location;
 
 import java.sql.*;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /* Question
  * Do I really need this to be an object?
@@ -69,6 +70,19 @@ public class MySQLClient {
 
         // Create MySQL Tables if Not Already Existing
         createTablesIfNotExists();
+    }
+
+    public void disconnect() {
+        try {
+            connection.close();
+        } catch (SQLException exception) {
+            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                    + "Closing Connection SQL State: "
+                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + exception.getSQLState());
+
+            Logger.printException(exception);
+        }
     }
 
     public void createTablesIfNotExists() {

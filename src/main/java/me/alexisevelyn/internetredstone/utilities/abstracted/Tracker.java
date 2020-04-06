@@ -4,10 +4,10 @@ import org.bukkit.Location;
 
 import java.util.UUID;
 
-public abstract class Tracker extends MQTT {
+public abstract class Tracker {
     // LecternTracker was getting way too big and complicated, so I split it up
     // Not only can an abstract class help clean up code, but it can also be used to provide implementation specific methods
-    // that aren't implemented in the abstract class. I don't have any need for unimplemented methods yet, but now they can be added.
+    // that aren't implemented in the abstract class.
 
     // Used to track the location of the lectern. Includes the world object too!
     Location location;
@@ -45,4 +45,7 @@ public abstract class Tracker extends MQTT {
     public void setLocation(Location location) {
         this.location = location;
     }
+
+    // Expected of All Trackers
+    public abstract void cleanup();
 }
