@@ -41,11 +41,17 @@ public class LecternTracker extends Tracker {
     String topic_ign;
 
     MQTTClient client;
-    final MySQLClient mySQLClient;
+    MySQLClient mySQLClient;
 
     public LecternTracker(@NotNull Main main, Location location, UUID player) {
-        setLocation(location);
+        // This is to be called on player registration
+        // Originally the plan was to have 2 constructors, one with the player and one without the player (to be used on startup).
         setPlayer(player);
+        setupLecternTracker(main, location);
+    }
+
+    private void setupLecternTracker(@NotNull Main main, Location location) {
+        setLocation(location);
         setMain(main);
 
         mySQLClient = main.getMySQLClient();
@@ -124,14 +130,20 @@ public class LecternTracker extends Tracker {
         ResultSet playerData;
         try {
             lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
-            // playerData
 
             if (lecternData != null && lecternData.next()) {
                 setLecternID(lecternData.getString("lecternID"));
                 setLastKnownPower(lecternData.getInt("lastKnownRedstoneSignal"));
             }
 
-            broker = "broker.hivemq.com";
+            playerData = mySQLClient.retrievePlayerDataIfExists(player);
+            if (playerData != null && playerData.next()) {
+                if (playerData.getString("broker") != null) {
+                    broker = playerData.getString("broker");
+                }
+
+                // TODO: Add username, password, and update last known ign if needed
+            }
         } catch(SQLException exception) {
             Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
                     "Failed To Retrieve Lectern Data From Database Due To SQLException!!!");

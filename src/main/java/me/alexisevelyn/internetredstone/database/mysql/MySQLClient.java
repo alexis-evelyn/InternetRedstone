@@ -283,6 +283,21 @@ public class MySQLClient {
         return doesExist.next() && doesExist.getInt(1) == 1;
     }
 
+    private boolean isPlayerInDatabase(UUID player) throws SQLException {
+        String query = "SELECT EXISTS(SELECT entry FROM Players" +
+                " WHERE `uuid` = :uuid LIMIT 1);";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+
+        ResultSet doesExist = preparedStatement.executeQuery();
+
+        // If result is 1, then lectern is already registered, otherwise, if 0, it's not
+        return doesExist.next() && doesExist.getInt(1) == 1;
+    }
+
     public Integer getNumberOfRegisteredLecterns() {
 
         return 0;
@@ -292,7 +307,7 @@ public class MySQLClient {
         if (!isLecternInDatabase(lectern))
             return null;
 
-        String query = "SELECT lecternID, lastKnownRedstoneSignal FROM Lecterns" +
+        String query = "SELECT uuid, lecternID, lastKnownRedstoneSignal, messagesSent, messagesReceived FROM Lecterns" +
                 " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
@@ -307,8 +322,26 @@ public class MySQLClient {
         return preparedStatement.executeQuery();
     }
 
-    public ResultSet retrievePlayerDataIfExists(Location lectern) throws SQLException {
+    public ResultSet retrievePlayerDataIfExists(UUID player) throws SQLException {
+        if (!isPlayerInDatabase(player))
+            return null;
 
-        return null;
+        String query = "SELECT broker, username, password, lastKnownIGN, numberOfLecternsRegistered FROM Lecterns" +
+                " WHERE `uuid` = :uuid LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+
+        return preparedStatement.executeQuery();
+    }
+
+    public ResultSet retrieveAllRegisteredLecternsIfExists() throws SQLException {
+        String query = "SELECT uuid, lecternID, lastKnownRedstoneSignal, messagesSent, messagesReceived FROM Lecterns;";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        return preparedStatement.executeQuery();
     }
 }
