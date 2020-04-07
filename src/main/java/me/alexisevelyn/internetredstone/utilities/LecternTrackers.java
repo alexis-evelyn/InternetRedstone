@@ -98,4 +98,14 @@ public class LecternTrackers {
     public ConcurrentHashMap<Location, LecternTracker> getTrackers() {
         return trackers;
     }
+
+    public void cleanup() {
+        for (LecternTracker tracker : trackers.values()) {
+            // Tell tracker to perform cleanup duties (e.g. finish sending data/saving/etc...)
+            tracker.cleanup();
+
+            // Mark tracker as eligible for garbage collection
+            tracker = null;
+        }
+    }
 }

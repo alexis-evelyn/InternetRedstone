@@ -34,51 +34,27 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class LecternTracker extends Tracker {
-    // Main class used to get synchronous execution (Don't Mark as Final Here)
-    @SuppressWarnings("CanBeFinal")
-    Main main;
-
     String lecternID;
     String topic_uuid;
     String topic_ign;
 
     MQTTClient client;
-    MySQLClient mySQLClient;
+    final MySQLClient mySQLClient;
 
     public LecternTracker(@NotNull Main main, Location location, UUID player) {
         setLocation(location);
         setPlayer(player);
+        setMain(main);
 
-        this.main = main;
-        this.mySQLClient = main.getMySQLClient();
-
-        // Temporarily Hardcoded Server Value for Testing
-        String server_name = "alexis";
-
-        // Temporary Means of Generating Semi-Unique IDs for Testing
-        Random temporary = new Random();
-        lecternID = String.valueOf(temporary.nextInt(100));
+        mySQLClient = main.getMySQLClient();
 
         try {
-            // This string will be read from Player's Config Or If None Provided, Server's Config
-            client = new MQTTClient(player, "broker.hivemq.com");
+            ArrayList<String> topics = loadLecternProperties();
 
-            // List of Topics to Subscribe To
-            topic_uuid = server_name + "/" + player + "/" + getLecternID(); // Topic based on player's uuid
-
-            // ArrayList of Topics to Subscribe To
-            ArrayList<String> topics = new ArrayList<>();
-            topics.add(topic_uuid);
-
-            // Get Player's Name if Possible, Otherwise, Just Stick With UUID
-            Player online_player = Bukkit.getPlayer(player);
-            if (online_player != null) {
-                topic_ign = server_name + "/" + online_player.getName() + "/" + getLecternID(); // Topic based on player's ign
-                topics.add(topic_ign);
-            }
-
-            // Subscribe to Topics through ArrayList method
-            // For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
+            /* Subscribe to Topics through ArrayList method
+             *
+             * NOTE: For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
+             */
             client.getConnection()
                     .thenAccept(read -> client.subscribe(topics, callback))
                     .thenAccept(mysql -> addDatabaseEntry());
@@ -94,6 +70,30 @@ public class LecternTracker extends Tracker {
         }
     }
 
+    private void setLecternID(String lecternID) {
+        this.lecternID = lecternID;
+    }
+
+    private void setTopic_uuid(String topic_uuid) {
+        this.topic_uuid = topic_uuid;
+    }
+
+    private void setTopic_ign(String topic_ign) {
+        this.topic_ign = topic_ign;
+    }
+
+    public String getLecternID() {
+        return lecternID;
+    }
+
+    public String getTopic_uuid() {
+        return topic_uuid;
+    }
+
+    public String getTopic_ign() {
+        return topic_ign;
+    }
+
     public void sendRedstoneUpdate(Integer signal) {
         byte[] payload = signal.toString().getBytes();
 
@@ -106,19 +106,57 @@ public class LecternTracker extends Tracker {
         }
     }
 
+    private ArrayList<String> loadLecternProperties() {
+        // Retrieve Player's UUID
+        UUID player = getPlayer();
+
+        // Temporarily Hardcoded Server Value for Testing
+        // TODO: Replace with loading value from config
+        String server_name = "alexis";
+
+        // Temporary Means of Generating Semi-Unique IDs for Testing
+        // TODO: Attempt to retrieve id from database, or if failed, then generate by other means
+        Random temporary = new Random();
+        setLecternID(String.valueOf(temporary.nextInt(100)));
+
+        // This string will be read from Player's Config Or If None Provided, Server's Config
+        // TODO: Attempt to retrieve id from database, or if failed, then load from config
+        client = new MQTTClient(player, "broker.hivemq.com");
+
+        // List of Topics to Subscribe To
+        setTopic_uuid(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
+
+        // ArrayList of Topics to Subscribe To
+        ArrayList<String> topics = new ArrayList<>();
+        topics.add(getTopic_uuid());
+
+        // Get Player's Name if Possible, Otherwise, Just Stick With UUID
+        Player online_player = Bukkit.getPlayer(player);
+        if (online_player != null) {
+            setTopic_ign(server_name + "/" + online_player.getName() + "/" + getLecternID()); // Topic based on player's ign
+            topics.add(getTopic_ign());
+        }
+
+        return topics;
+    }
+
     private void addDatabaseEntry() {
         // TODO: Add String for username, password, and ign!!!
 
-        try {
-            // Update Number of Registered Lecterns and IGN
-            //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
+        // The Runnable is to make sure MySQL is called synchronously as all trackers share the same connection.
+        Bukkit.getScheduler().runTask(getMain(), () -> {
+            try {
+                // Update Number of Registered Lecterns and IGN
+                //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
 
-            mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
-        } catch (SQLException exception) {
-            Logger.severe("Failed to add database entries in Lectern Tracker!!!");
+                mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
+            } catch (SQLException exception) {
+                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
+                        + "Failed to add database entries in Lectern Tracker!!!");
 
-            Logger.printException(exception);
-        }
+                Logger.printException(exception);
+            }
+        });
     }
 
     public void unregister() {
@@ -134,18 +172,6 @@ public class LecternTracker extends Tracker {
         }
 
         cleanup();
-    }
-
-    public String getLecternID() {
-        return lecternID;
-    }
-
-    public String getTopic_uuid() {
-        return topic_uuid;
-    }
-
-    public String getTopic_ign() {
-        return topic_ign;
     }
 
     // Function To Run Asynchronously When Message is Received
@@ -173,7 +199,7 @@ public class LecternTracker extends Tracker {
         }
 
         if (0 <= powerLevel && powerLevel <= 14) {
-            Bukkit.getScheduler().runTask(main, () -> {
+            Bukkit.getScheduler().runTask(getMain(), () -> {
                 Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To: "
                         + ChatColor.AQUA + "" + ChatColor.BOLD + (powerLevel + 1));
 
@@ -282,7 +308,27 @@ public class LecternTracker extends Tracker {
 
     @Override
     public void cleanup() {
+        /*
+         * Disconnect MQTT Client Properly
+         *
+         * (that way the MQTT Last Will and Testament isn't executed
+         * and can be replaced by a server shutdown message
+         * or a tracker destroyed message)
+         */
+
+        String message = "Cleanup Called!!!";
+        byte[] payload = message.getBytes();
+
+        // Send Message To Topic With UUID
+        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
+
+        // Send Message To Topic With IGM - Topic may be null here
+        if (getTopic_ign() != null) {
+            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
+        }
+
         client.disconnect();
-        mySQLClient.disconnect();
+
+        // Don't handle MySQL Client here as one instance is shared across all trackers!!!
     }
 }

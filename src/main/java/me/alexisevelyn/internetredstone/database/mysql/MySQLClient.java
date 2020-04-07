@@ -7,7 +7,6 @@ import org.bukkit.Location;
 
 import java.sql.*;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /* Question
  * Do I really need this to be an object?
@@ -184,8 +183,8 @@ public class MySQLClient {
          * Number of Messages Received (If Implemented)
          */
 
-        String query = "SELECT FROM Lecterns" +
-                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world;";
+        String query = "SELECT EXISTS(SELECT entry FROM Lecterns" +
+                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world);";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
                 .createNamedParameterPreparedStatement(connection, query);
@@ -199,15 +198,15 @@ public class MySQLClient {
         ResultSet doesExist = preparedStatement.executeQuery();
 
         // If result is 1, then lectern is already registered, otherwise, if 0, continue on
-        if (doesExist.getInt(1) == 1)
+        if (!doesExist.next() && doesExist.getInt(1) == 1)
             return;
 
         // The row shouldn't already exist if we are here, so we insert it
         // UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal
 
         query = "INSERT INTO Lecterns" +
-                " ('uuid', 'x', 'y', 'z', 'worldUID', 'lecternID', 'lastKnownRedstoneSignal') VALUES" +
-                " (':uuid', ':x', ':y', ':z', ':world', ':lecternID', ':signal')";
+                " (uuid, x, y, z, worldUID, lecternID, lastKnownRedstoneSignal) VALUES" +
+                " (:uuid, :x, :y, :z, :world, :lecternID, :signal)";
 
         preparedStatement = NamedParameterPreparedStatement
                 .createNamedParameterPreparedStatement(connection, query);
@@ -224,6 +223,7 @@ public class MySQLClient {
 
         preparedStatement.setString("signal", lastKnownRedstoneSignal.toString());
 
+        Logger.severe("About To Execute Database Entry!!!");
         preparedStatement.executeUpdate();
     }
 
@@ -276,5 +276,10 @@ public class MySQLClient {
          *
          * Should I store information such as QOS/etc...?
          */
+    }
+
+    public Integer getNumberOfRegisteredLecterns() {
+
+        return 0;
     }
 }

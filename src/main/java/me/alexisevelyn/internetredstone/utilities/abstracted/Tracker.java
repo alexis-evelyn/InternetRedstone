@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone.utilities.abstracted;
 
+import me.alexisevelyn.internetredstone.Main;
 import org.bukkit.Location;
 
 import java.util.UUID;
@@ -17,6 +18,9 @@ public abstract class Tracker {
 
     // Used to track the player who owns the lectern. Will aid in allowing using that player's settings.
     UUID player;
+
+    // Main class used to get synchronous execution (Don't Mark as Final Here)
+    Main main;
 
     public boolean isLastKnownPower(Integer currentPower) {
         return currentPower.equals(getLastKnownPower());
@@ -44,6 +48,14 @@ public abstract class Tracker {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public void setMain(Main main) {
+        this.main = main;
+    }
+
+    public Main getMain() {
+        return main;
     }
 
     // Expected of All Trackers

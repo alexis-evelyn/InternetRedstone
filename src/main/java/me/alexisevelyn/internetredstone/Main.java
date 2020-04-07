@@ -7,6 +7,7 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
 import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Commands;
+import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bstats.bukkit.Metrics;
@@ -62,6 +63,14 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+
+        // Close MQTT Connections Properly (So, players can get notified on server shutdown/etc...)
+        trackers.cleanup();
+        trackers = null;
+
+        // Close MySQL Connection
+        client.disconnect();
+        client = null;
     }
 
     protected Boolean registerStats() {
@@ -73,7 +82,7 @@ public class Main extends JavaPlugin {
             @Override
             public String call() throws Exception {
                 // Retrieves Number of Registered Lecterns - Nothing Else, Just The Number
-                return String.valueOf(trackers.getTrackers().size());
+                return String.valueOf(client.getNumberOfRegisteredLecterns());
             }
         }));
 
