@@ -183,32 +183,18 @@ public class MySQLClient {
          * Number of Messages Received (If Implemented)
          */
 
-        String query = "SELECT EXISTS(SELECT entry FROM Lecterns" +
-                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world);";
-
-        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
-                .createNamedParameterPreparedStatement(connection, query);
-
-        preparedStatement.setString("x", String.valueOf(lectern.getBlockX()));
-        preparedStatement.setString("y", String.valueOf(lectern.getBlockY()));
-        preparedStatement.setString("z", String.valueOf(lectern.getBlockZ()));
-
-        preparedStatement.setString("world", lectern.getWorld().getUID().toString());
-
-        ResultSet doesExist = preparedStatement.executeQuery();
-
-        // If result is 1, then lectern is already registered, otherwise, if 0, continue on
-        if (!doesExist.next() && doesExist.getInt(1) == 1)
+        // Check if Lectern is Already in Database
+        if (isLecternInDatabase(lectern))
             return;
 
         // The row shouldn't already exist if we are here, so we insert it
         // UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal
 
-        query = "INSERT INTO Lecterns" +
+        String query = "INSERT INTO Lecterns" +
                 " (uuid, x, y, z, worldUID, lecternID, lastKnownRedstoneSignal) VALUES" +
                 " (:uuid, :x, :y, :z, :world, :lecternID, :signal)";
 
-        preparedStatement = NamedParameterPreparedStatement
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
                 .createNamedParameterPreparedStatement(connection, query);
 
         preparedStatement.setString("uuid", player.toString());
@@ -247,8 +233,9 @@ public class MySQLClient {
             WHERE 'x' = 1 and `y` = 2 and `z` = 3 and `worldUID` = 'hello';
          */
 
+        // Should I Put a Limit 1 Here?
         String query = "DELETE FROM Lecterns" +
-                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world;";
+                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
                 .createNamedParameterPreparedStatement(connection, query);
@@ -278,8 +265,49 @@ public class MySQLClient {
          */
     }
 
+    private boolean isLecternInDatabase(Location lectern) throws SQLException {
+        String query = "SELECT EXISTS(SELECT entry FROM Lecterns" +
+                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world LIMIT 1);";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("x", String.valueOf(lectern.getBlockX()));
+        preparedStatement.setString("y", String.valueOf(lectern.getBlockY()));
+        preparedStatement.setString("z", String.valueOf(lectern.getBlockZ()));
+
+        preparedStatement.setString("world", lectern.getWorld().getUID().toString());
+
+        ResultSet doesExist = preparedStatement.executeQuery();
+
+        // If result is 1, then lectern is already registered, otherwise, if 0, continue on
+        return doesExist.next() || doesExist.getInt(1) != 1;
+    }
+
     public Integer getNumberOfRegisteredLecterns() {
 
         return 0;
+    }
+
+    public ResultSet retrieveLecternDataIfExists(Location lectern) throws SQLException {
+        if (!isLecternInDatabase(lectern))
+            return null;
+
+        String query = "SELECT lecternID, lastKnownRedstoneSignal FROM Lecterns" +
+                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("x", String.valueOf(lectern.getBlockX()));
+        preparedStatement.setString("y", String.valueOf(lectern.getBlockY()));
+        preparedStatement.setString("z", String.valueOf(lectern.getBlockZ()));
+
+        preparedStatement.setString("world", lectern.getWorld().getUID().toString());
+
+        ResultSet lecternData = preparedStatement.executeQuery();
+        lecternData.next();
+
+        return lecternData;
     }
 }

@@ -15,6 +15,7 @@ import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,6 +28,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -110,20 +112,40 @@ public class LecternTracker extends Tracker {
         // Retrieve Player's UUID
         UUID player = getPlayer();
 
+        // This string will be read from Player's Config Or If None Provided, Server's Config
+        // TODO: Attempt to retrieve broker from database, or if failed, then load from config
+        String broker = "broker.hivemq.com";
+
         // Temporarily Hardcoded Server Value for Testing
         // TODO: Replace with loading value from config
         String server_name = "alexis";
 
-        // Temporary Means of Generating Semi-Unique IDs for Testing
-        // TODO: Attempt to retrieve id from database, or if failed, then generate by other means
-        Random temporary = new Random();
-        setLecternID(String.valueOf(temporary.nextInt(100)));
+        ResultSet lecternData;
+        try {
+            lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
 
-        // This string will be read from Player's Config Or If None Provided, Server's Config
-        // TODO: Attempt to retrieve id from database, or if failed, then load from config
-        client = new MQTTClient(player, "broker.hivemq.com");
+//            setLecternID();
+//            broker = "";
+        } catch(SQLException exception) {
+            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
+                    "Failed To Retrieve Lectern Data From Database Due To SQLException!!!");
+
+            Logger.printException(exception);
+        }
+
+        // Checks if String Was Previously Set Because Of MySQL Data
+        if (StringUtils.isBlank(getLecternID())) {
+            // Temporary Means of Generating Semi-Unique IDs for Testing
+            // TODO: Attempt to retrieve id from database, or if failed, then generate by other means
+            Random temporary = new Random();
+            setLecternID(String.valueOf(temporary.nextInt(100)));
+        }
+
+        // Create MQTT Client For Lectern
+        client = new MQTTClient(player, broker);
 
         // List of Topics to Subscribe To
+        // TODO: Eventually Allow Customizing Topic String In Config
         setTopic_uuid(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
 
         // ArrayList of Topics to Subscribe To
@@ -133,6 +155,7 @@ public class LecternTracker extends Tracker {
         // Get Player's Name if Possible, Otherwise, Just Stick With UUID
         Player online_player = Bukkit.getPlayer(player);
         if (online_player != null) {
+            // TODO: Eventually Allow Customizing Topic String In Config
             setTopic_ign(server_name + "/" + online_player.getName() + "/" + getLecternID()); // Topic based on player's ign
             topics.add(getTopic_ign());
         }
