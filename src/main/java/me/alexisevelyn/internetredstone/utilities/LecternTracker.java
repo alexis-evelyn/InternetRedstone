@@ -27,6 +27,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
@@ -107,8 +108,32 @@ public class LecternTracker extends Tracker {
 
     private void addDatabaseEntry() {
         // TODO: Add String for username, password, and ign!!!
-        mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, getLastKnownPower());
-        mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
+
+        try {
+            // Update Number of Registered Lecterns and IGN
+            //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
+
+            mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
+        } catch (SQLException exception) {
+            Logger.severe("Failed to add database entries in Lectern Tracker!!!");
+
+            Logger.printException(exception);
+        }
+    }
+
+    public void unregister() {
+        try {
+            // Update Number of Registered Lecterns and IGN
+            //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
+
+            mySQLClient.unregisterLectern(getLocation());
+        } catch (SQLException exception) {
+            Logger.severe("Failed to remove database entries in Lectern Tracker!!!");
+
+            Logger.printException(exception);
+        }
+
+        cleanup();
     }
 
     public String getLecternID() {

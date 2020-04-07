@@ -207,6 +207,13 @@
             <version>1.18.12</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <!-- Used to make named parameter prepared statements possible in Java -->
+            <groupId>com.axiomalaska</groupId>
+            <artifactId>jdbc-named-parameters</artifactId>
+            <version>1.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <distributionManagement>

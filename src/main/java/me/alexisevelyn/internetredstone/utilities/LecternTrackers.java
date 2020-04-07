@@ -63,7 +63,7 @@ public class LecternTrackers {
                     + ChatColor.GOLD + ", missing from database!!!");
 
         LecternTracker tracker = trackers.get(location);
-        tracker.cleanup();
+        tracker.unregister();
 
         trackers.remove(location);
     }

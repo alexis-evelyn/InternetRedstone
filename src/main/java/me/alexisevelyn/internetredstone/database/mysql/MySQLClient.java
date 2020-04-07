@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone.database.mysql;
 
+import com.axiomalaska.jdbc.NamedParameterPreparedStatement;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -120,16 +121,15 @@ public class MySQLClient {
             );
          */
 
-        String query = "CREATE TABLE IF NOT EXISTS `Players` (\n" +
-                "                `entry` INT NOT NULL AUTO_INCREMENT COMMENT 'Used to help order entries by creation',\n" +
-                "                `broker` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user broker settings if defined. If null, default to server broker!',\n" +
-                "                `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.',\n" +
-                "                `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.',\n" +
-                "                `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate player preferences with player objects.',\n" +
-                "                `lastKnownIGN` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s name to help provide a convenient mqtt link for said player to use. Never use the username to track the player as the username can change at any moment. This exists just for the players\\' convenience and must be updated on player login and every once in a while to keep convenient links convenient.',\n" +
-                "                `numberOfLecternsRegistered` INT NOT NULL DEFAULT '0' COMMENT 'Used for player statistics. Tracks the number of registered lecterns a player owns.',\n" +
-                "                PRIMARY KEY (`entry`)\n" +
-                "            );";
+        String query = "CREATE TABLE IF NOT EXISTS `Players` (" +
+                " `entry` INT NOT NULL AUTO_INCREMENT COMMENT 'Used to help order entries by creation'," +
+                " `broker` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user broker settings if defined. If null, default to server broker!'," +
+                " `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
+                " `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
+                " `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate player preferences with player objects.'," +
+                " `lastKnownIGN` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s name to help provide a convenient mqtt link for said player to use. Never use the username to track the player as the username can change at any moment. This exists just for the players\\' convenience and must be updated on player login and every once in a while to keep convenient links convenient.'," +
+                " `numberOfLecternsRegistered` INT NOT NULL DEFAULT '0' COMMENT 'Used for player statistics. Tracks the number of registered lecterns a player owns.'," +
+                " PRIMARY KEY (`entry`));";
 
         Statement statement = connection.createStatement();
         return statement.executeUpdate(query);
@@ -153,25 +153,24 @@ public class MySQLClient {
             );
          */
 
-        String query = "CREATE TABLE IF NOT EXISTS `Lecterns` (\n" +
-                "                `entry` INT NOT NULL AUTO_INCREMENT COMMENT 'Used to help order entries by creation',\n" +
-                "                `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate lectern with player object.',\n" +
-                "                `x` DECIMAL NOT NULL COMMENT 'Lectern\\'s X Coordinate',\n" +
-                "                `y` DECIMAL NOT NULL COMMENT 'Lectern\\'s Y Coordinate',\n" +
-                "                `z` DECIMAL NOT NULL COMMENT 'Lectern\\'s Z Coordinate',\n" +
-                "                `worldUID` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'World lectern is stored in. Stored as a uuid so even if the world is renamed, the uid remains the same. Internally handled as a UUID.',\n" +
-                "                `lecternID` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID used to identify sub-topic lectern should communicate on for MQTT.',\n" +
-                "                `lastKnownRedstoneSignal` INT NOT NULL DEFAULT '0' COMMENT 'Last known redstone signal as recorded during plugin shutdown. Helps with preventing sending duplicate redstone signals. Can be a value from 0 to 15.',\n" +
-                "                `messagesSent` BIGINT NOT NULL DEFAULT '0' COMMENT 'Number of messages sent to MQTT server for this specific lectern. Useful for statistics.',\n" +
-                "                `messagesReceived` BIGINT NOT NULL DEFAULT '0' COMMENT 'Number of messages received from MQTT server for this specific lectern. Useful for statistics.',\n" +
-                "                PRIMARY KEY (`entry`)\n" +
-                "            );";
+        String query = "CREATE TABLE IF NOT EXISTS `Lecterns` (" +
+                " `entry` INT NOT NULL AUTO_INCREMENT COMMENT 'Used to help order entries by creation'," +
+                " `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate lectern with player object.'," +
+                " `x` DECIMAL NOT NULL COMMENT 'Lectern\\'s X Coordinate'," +
+                " `y` DECIMAL NOT NULL COMMENT 'Lectern\\'s Y Coordinate'," +
+                " `z` DECIMAL NOT NULL COMMENT 'Lectern\\'s Z Coordinate'," +
+                " `worldUID` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'World lectern is stored in. Stored as a uuid so even if the world is renamed, the uid remains the same. Internally handled as a UUID.'," +
+                " `lecternID` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID used to identify sub-topic lectern should communicate on for MQTT.'," +
+                " `lastKnownRedstoneSignal` INT NOT NULL DEFAULT '0' COMMENT 'Last known redstone signal as recorded during plugin shutdown. Helps with preventing sending duplicate redstone signals. Can be a value from 0 to 15.'," +
+                " `messagesSent` BIGINT NOT NULL DEFAULT '0' COMMENT 'Number of messages sent to MQTT server for this specific lectern. Useful for statistics.'," +
+                " `messagesReceived` BIGINT NOT NULL DEFAULT '0' COMMENT 'Number of messages received from MQTT server for this specific lectern. Useful for statistics.'," +
+                " PRIMARY KEY (`entry`));";
 
         Statement statement = connection.createStatement();
         return statement.executeUpdate(query);
     }
 
-    public void registerLectern(UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal) {
+    public void registerLectern(UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal) throws SQLException {
         /* Info Needed
          *
          * Player UUID (UUID player)
@@ -185,10 +184,50 @@ public class MySQLClient {
          * Number of Messages Received (If Implemented)
          */
 
+        String query = "SELECT FROM Lecterns" +
+                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world;";
 
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("x", String.valueOf(lectern.getBlockX()));
+        preparedStatement.setString("y", String.valueOf(lectern.getBlockY()));
+        preparedStatement.setString("z", String.valueOf(lectern.getBlockZ()));
+
+        preparedStatement.setString("world", lectern.getWorld().getUID().toString());
+
+        ResultSet doesExist = preparedStatement.executeQuery();
+
+        // If result is 1, then lectern is already registered, otherwise, if 0, continue on
+        if (doesExist.getInt(1) == 1)
+            return;
+
+        // The row shouldn't already exist if we are here, so we insert it
+        // UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal
+
+        query = "INSERT INTO Lecterns" +
+                " ('uuid', 'x', 'y', 'z', 'worldUID', 'lecternID', 'lastKnownRedstoneSignal') VALUES" +
+                " (':uuid', ':x', ':y', ':z', ':world', ':lecternID', ':signal')";
+
+        preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+
+        preparedStatement.setString("x", String.valueOf(lectern.getBlockX()));
+        preparedStatement.setString("y", String.valueOf(lectern.getBlockY()));
+        preparedStatement.setString("z", String.valueOf(lectern.getBlockZ()));
+
+        preparedStatement.setString("world", lectern.getWorld().getUID().toString());
+
+        preparedStatement.setString("lecternID", lecternID);
+
+        preparedStatement.setString("signal", lastKnownRedstoneSignal.toString());
+
+        preparedStatement.executeUpdate();
     }
 
-    public void unregisterLectern() {
+    public void unregisterLectern(Location lectern) throws SQLException {
         /* Info Needed
          *
          * Player UUID/IGN
@@ -200,6 +239,27 @@ public class MySQLClient {
 
         // Lectern ID can be used to notify user that lectern was destroyed/disabled
         // Entry will be erased from Database, not just marked as disabled
+
+        /* MySQL Query - Pasted Here For Easy Modification
+
+            DELETE
+            FROM Lecterns
+            WHERE 'x' = 1 and `y` = 2 and `z` = 3 and `worldUID` = 'hello';
+         */
+
+        String query = "DELETE FROM Lecterns" +
+                " WHERE `x` = :x and `y` = :y and `z` = :z and `worldUID` = :world;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("x", String.valueOf(lectern.getBlockX()));
+        preparedStatement.setString("y", String.valueOf(lectern.getBlockY()));
+        preparedStatement.setString("z", String.valueOf(lectern.getBlockZ()));
+
+        preparedStatement.setString("world", lectern.getWorld().getUID().toString());
+
+        preparedStatement.executeUpdate();
     }
 
     public void storeUserPreferences(String broker, String username, String password, UUID player, String ign, Integer numberofLecternsRegistered) {
