@@ -310,4 +310,9 @@ public class MySQLClient {
 
         return lecternData;
     }
+
+    public ResultSet retrievePlayerDataIfExists(Location lectern) throws SQLException {
+
+        return null;
+    }
 }
