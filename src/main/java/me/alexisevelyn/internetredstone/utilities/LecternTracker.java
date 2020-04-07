@@ -121,13 +121,17 @@ public class LecternTracker extends Tracker {
         String server_name = "alexis";
 
         ResultSet lecternData;
+        ResultSet playerData;
         try {
             lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
+            // playerData
+
+            if (lecternData != null && lecternData.next()) {
+                setLecternID(lecternData.getString("lecternID"));
+                setLastKnownPower(lecternData.getInt("lastKnownRedstoneSignal"));
+            }
 
             broker = "broker.hivemq.com";
-
-            setLecternID("lecternID");
-            setLastKnownPower(lecternData.getInt("lastKnownRedstoneSignal"));
         } catch(SQLException exception) {
             Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
                     "Failed To Retrieve Lectern Data From Database Due To SQLException!!!");

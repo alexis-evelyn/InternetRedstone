@@ -209,7 +209,6 @@ public class MySQLClient {
 
         preparedStatement.setString("signal", lastKnownRedstoneSignal.toString());
 
-        Logger.severe("About To Execute Database Entry!!!");
         preparedStatement.executeUpdate();
     }
 
@@ -249,7 +248,7 @@ public class MySQLClient {
         preparedStatement.executeUpdate();
     }
 
-    public void storeUserPreferences(String broker, String username, String password, UUID player, String ign, Integer numberofLecternsRegistered) {
+    public void storeUserPreferences(String broker, String username, String password, UUID player, String ign, @SuppressWarnings("SpellCheckingInspection") Integer numberofLecternsRegistered) {
         // TODO: Figure out how to format this and if should split into multiple functions
 
         /* Info Needed
@@ -280,8 +279,8 @@ public class MySQLClient {
 
         ResultSet doesExist = preparedStatement.executeQuery();
 
-        // If result is 1, then lectern is already registered, otherwise, if 0, continue on
-        return doesExist.next() || doesExist.getInt(1) != 1;
+        // If result is 1, then lectern is already registered, otherwise, if 0, it's not
+        return doesExist.next() && doesExist.getInt(1) == 1;
     }
 
     public Integer getNumberOfRegisteredLecterns() {
@@ -305,10 +304,7 @@ public class MySQLClient {
 
         preparedStatement.setString("world", lectern.getWorld().getUID().toString());
 
-        ResultSet lecternData = preparedStatement.executeQuery();
-        lecternData.next();
-
-        return lecternData;
+        return preparedStatement.executeQuery();
     }
 
     public ResultSet retrievePlayerDataIfExists(Location lectern) throws SQLException {
