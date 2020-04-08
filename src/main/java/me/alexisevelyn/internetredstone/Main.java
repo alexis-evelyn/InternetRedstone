@@ -16,6 +16,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.sql.ResultSet;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -91,7 +92,27 @@ public class Main extends JavaPlugin {
             @Override
             public String call() throws Exception {
                 // Retrieves Number of Registered Lecterns - Nothing Else, Just The Number
-                return String.valueOf(client.getNumberOfRegisteredLecterns());
+                ResultSet lecternCount = client.getNumberOfRegisteredLecterns();
+
+                if (lecternCount.next()) {
+                    return lecternCount.getString(1);
+                }
+
+                return "Failed To Retrieve Number of Registered Lecterns";
+            }
+        }));
+
+        metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_players", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                // Retrieves Number of Registered Players - Nothing Else, Just The Number
+                ResultSet playerCount = client.getNumberOfRegisteredPlayers();
+
+                if (playerCount.next()) {
+                    return playerCount.getString(1);
+                }
+
+                return "Failed To Retrieve Number of Registered Players";
             }
         }));
 

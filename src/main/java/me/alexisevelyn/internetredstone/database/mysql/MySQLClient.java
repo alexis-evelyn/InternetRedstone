@@ -298,9 +298,20 @@ public class MySQLClient {
         return doesExist.next() && doesExist.getInt(1) == 1;
     }
 
-    public Integer getNumberOfRegisteredLecterns() {
+    public ResultSet getNumberOfRegisteredLecterns() throws SQLException {
+        String query = "SELECT COUNT(*) FROM Lecterns;";
 
-        return 0;
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        return preparedStatement.executeQuery();
+    }
+
+    public ResultSet getNumberOfRegisteredPlayers() throws SQLException {
+        String query = "SELECT COUNT(*) FROM Players;";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        return preparedStatement.executeQuery();
     }
 
     public ResultSet retrieveLecternDataIfExists(Location lectern) throws SQLException {
