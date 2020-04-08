@@ -338,7 +338,7 @@ public class MySQLClient {
     }
 
     public ResultSet retrieveAllRegisteredLecternsIfExists() throws SQLException {
-        String query = "SELECT uuid, lecternID, lastKnownRedstoneSignal, messagesSent, messagesReceived FROM Lecterns;";
+        String query = "SELECT uuid, x, y, z, worldUID FROM Lecterns;";
 
         PreparedStatement preparedStatement = connection.prepareStatement(query);
 

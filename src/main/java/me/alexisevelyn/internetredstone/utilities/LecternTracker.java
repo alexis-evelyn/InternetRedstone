@@ -138,7 +138,7 @@ public class LecternTracker extends Tracker {
 
             playerData = mySQLClient.retrievePlayerDataIfExists(player);
             if (playerData != null && playerData.next()) {
-                if (playerData.getString("broker") != null) {
+                if (StringUtils.isNotBlank(playerData.getString("broker"))) {
                     broker = playerData.getString("broker");
                 }
 

@@ -45,6 +45,9 @@ public class Main extends JavaPlugin {
         // Register lectern trackers class
         trackers = new LecternTrackers(this);
 
+        // Register Saved Trackers From Database
+        trackers.registerSavedTrackers();
+
         // Register Bukkit Event Listeners
         getServer().getPluginManager().registerEvents(new RedstoneUpdate(trackers), this);
         getServer().getPluginManager().registerEvents(new InteractWithLectern(trackers), this);
