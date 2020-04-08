@@ -108,7 +108,7 @@ public class LecternTracker extends Tracker {
         // Send Message To Topic With UUID
         client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
 
-        // Send Message To Topic With IGM - Topic may be null here
+        // Send Message To Topic With IGN - Topic may be null here
         if (getTopic_ign() != null) {
             client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
         }

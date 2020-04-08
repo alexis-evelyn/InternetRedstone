@@ -10,6 +10,7 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Commands;
 import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.MojangUtilities;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
@@ -24,11 +25,16 @@ public class Main extends JavaPlugin {
     Integer pluginId = 7001;
 
     MySQLClient client;
+    Thread sync;
 
     @Override
     public void onEnable() {
         // Determine whether or not to output debug information
         Logger.setDebugMode(true);
+
+        // Grab reference to synchronous thread to prevent me from being stupid with http requests
+        sync = Thread.currentThread();
+        MojangUtilities.setSync(sync);
 
         // Register MySQL Client
         client = new MySQLClient();
