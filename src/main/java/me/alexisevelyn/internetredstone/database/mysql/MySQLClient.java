@@ -114,7 +114,6 @@ public class MySQLClient {
                 `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.',
                 `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.',
                 `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\'s uuid to help associate player preferences with player objects.',
-                `lastKnownIGN` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\'s name to help provide a convenient mqtt link for said player to use. Never use the username to track the player as the username can change at any moment. This exists just for the players\' convenience and must be updated on player login and every once in a while to keep convenient links convenient.',
                 `numberOfLecternsRegistered` INT NOT NULL DEFAULT '0' COMMENT 'Used for player statistics. Tracks the number of registered lecterns a player owns.',
                 PRIMARY KEY (`entry`)
             );
@@ -126,7 +125,6 @@ public class MySQLClient {
                 " `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
                 " `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
                 " `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate player preferences with player objects.'," +
-                " `lastKnownIGN` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s name to help provide a convenient mqtt link for said player to use. Never use the username to track the player as the username can change at any moment. This exists just for the players\\' convenience and must be updated on player login and every once in a while to keep convenient links convenient.'," +
                 " `numberOfLecternsRegistered` INT NOT NULL DEFAULT '0' COMMENT 'Used for player statistics. Tracks the number of registered lecterns a player owns.'," +
                 " PRIMARY KEY (`entry`));";
 
@@ -215,7 +213,7 @@ public class MySQLClient {
     public void unregisterLectern(Location lectern) throws SQLException {
         /* Info Needed
          *
-         * Player UUID/IGN
+         * Player UUID
          * Lectern Coordinates
          * Lectern World
          *
@@ -248,20 +246,41 @@ public class MySQLClient {
         preparedStatement.executeUpdate();
     }
 
-    public void storeUserPreferences(String broker, String username, String password, UUID player, String ign, @SuppressWarnings("SpellCheckingInspection") Integer numberofLecternsRegistered) {
-        // TODO: Figure out how to format this and if should split into multiple functions
-
+    public void storeUserPreferences(String broker, String username, String password, UUID player) throws SQLException {
         /* Info Needed
          *
          * Broker or null if using default
          * Player Database username or null if using default
          * Player Database password or null if using default
          *
-         * Player UUID/IGN
+         * Player UUID
          * Number of Lecterns Registered (If Implemented)
          *
          * Should I store information such as QOS/etc...?
          */
+
+        // Check if Lectern is Already in Database
+        if (isPlayerInDatabase(player))
+            return;
+
+        // The row shouldn't already exist if we are here, so we insert it
+        // UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal
+
+        String query = "INSERT INTO Players" +
+                " (broker, username, password, uuid) VALUES" +
+                " (:broker, :username, :password, :uuid)";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("broker", broker);
+
+        preparedStatement.setString("username", username);
+        preparedStatement.setString("password", password);
+
+        preparedStatement.setString("uuid", player.toString());
+
+        preparedStatement.executeUpdate();
     }
 
     private boolean isLecternInDatabase(Location lectern) throws SQLException {
@@ -337,7 +356,7 @@ public class MySQLClient {
         if (!isPlayerInDatabase(player))
             return null;
 
-        String query = "SELECT broker, username, password, lastKnownIGN, numberOfLecternsRegistered FROM Lecterns" +
+        String query = "SELECT broker, username, password, numberOfLecternsRegistered FROM Lecterns" +
                 " WHERE `uuid` = :uuid LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement

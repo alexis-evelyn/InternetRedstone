@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.entity.Player;
@@ -39,6 +40,7 @@ public class LecternTracker extends Tracker {
     String lecternID;
     String topic_uuid;
     String topic_ign;
+    String broker;
 
     MQTTClient client;
     MySQLClient mySQLClient;
@@ -90,6 +92,10 @@ public class LecternTracker extends Tracker {
         this.topic_ign = topic_ign;
     }
 
+    private void setBroker(String broker) {
+        this.broker = broker;
+    }
+
     public String getLecternID() {
         return lecternID;
     }
@@ -100,6 +106,10 @@ public class LecternTracker extends Tracker {
 
     public String getTopic_ign() {
         return topic_ign;
+    }
+
+    public String getBroker() {
+        return broker;
     }
 
     public void sendRedstoneUpdate(Integer signal) {
@@ -120,7 +130,7 @@ public class LecternTracker extends Tracker {
 
         // This string will be read from Player's Config Or If None Provided, Server's Config
         // TODO: Attempt to retrieve broker from database, or if failed, then load from config
-        String broker = "broker.hivemq.com";
+        setBroker("broker.hivemq.com");
 
         // Temporarily Hardcoded Server Value for Testing
         // TODO: Replace with loading value from config
@@ -139,10 +149,10 @@ public class LecternTracker extends Tracker {
             playerData = mySQLClient.retrievePlayerDataIfExists(player);
             if (playerData != null && playerData.next()) {
                 if (StringUtils.isNotBlank(playerData.getString("broker"))) {
-                    broker = playerData.getString("broker");
+                    setBroker(playerData.getString("broker"));
                 }
 
-                // TODO: Add username, password, and update last known ign if needed
+                // TODO: Add username and password
             }
         } catch(SQLException exception) {
             Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
@@ -160,7 +170,7 @@ public class LecternTracker extends Tracker {
         }
 
         // Create MQTT Client For Lectern
-        client = new MQTTClient(player, broker);
+        client = new MQTTClient(player, getBroker());
 
         // List of Topics to Subscribe To
         // TODO: Eventually Allow Customizing Topic String In Config
@@ -171,10 +181,13 @@ public class LecternTracker extends Tracker {
         topics.add(getTopic_uuid());
 
         // Get Player's Name if Possible, Otherwise, Just Stick With UUID
-        Player online_player = Bukkit.getPlayer(player);
-        if (online_player != null) {
+        // This should work regardless if the player is online or not, so long as we have seen them before.
+        OfflinePlayer playerObject = Bukkit.getOfflinePlayer(player);
+
+        // Make sure to not set the ign topic to "null"
+        if (StringUtils.isNotBlank(playerObject.getName())) {
             // TODO: Eventually Allow Customizing Topic String In Config
-            setTopic_ign(server_name + "/" + online_player.getName() + "/" + getLecternID()); // Topic based on player's ign
+            setTopic_ign(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
             topics.add(getTopic_ign());
         }
 
@@ -182,14 +195,14 @@ public class LecternTracker extends Tracker {
     }
 
     private void addDatabaseEntry() {
-        // TODO: Add String for username, password, and ign!!!
+        // TODO: Add String for username, password!!!
 
         // The Runnable is to make sure MySQL is called synchronously as all trackers share the same connection.
         Bukkit.getScheduler().runTask(getMain(), () -> {
             try {
-                // Update Number of Registered Lecterns and IGN
-                //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
+                // Update Number of Registered Lecterns
 
+                mySQLClient.storeUserPreferences(getBroker(), null, null, getPlayer());
                 mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
             } catch (SQLException exception) {
                 Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
@@ -202,7 +215,7 @@ public class LecternTracker extends Tracker {
 
     public void unregister() {
         try {
-            // Update Number of Registered Lecterns and IGN
+            // Update Number of Registered Lecterns
             //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
 
             mySQLClient.unregisterLectern(getLocation());
