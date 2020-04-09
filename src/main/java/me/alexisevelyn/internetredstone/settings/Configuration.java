@@ -7,7 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import java.util.UUID;
 
 public class Configuration {
-    Main main;
+    final Main main;
     FileConfiguration config;
 
     public Configuration(Main main) {
@@ -53,9 +53,11 @@ public class Configuration {
         return config;
     }
 
-    public void reloadConfig() {
-        // TODO: Test Me!!!
-        // TODO: Rewrite Plugin To Reload on Demand And Gracefully Handle Missing Data (e.g without disabling ourselves)
-        main.reloadConfig();
-    }
+// --Commented out by Inspection START (4/9/20, 7:35 PM):
+//    public void reloadConfig() {
+//        // TODO: Test Me!!!
+//        // TODO: Rewrite Plugin To Reload on Demand And Gracefully Handle Missing Data (e.g without disabling ourselves)
+//        main.reloadConfig();
+//    }
+// --Commented out by Inspection STOP (4/9/20, 7:35 PM)
 }

@@ -23,9 +23,7 @@ import java.util.function.Consumer;
 
 public class MQTTClient {
     final Mqtt5AsyncClient client;
-    CompletableFuture<Mqtt5ConnAck> connection;
-
-    String broker;
+    final CompletableFuture<Mqtt5ConnAck> connection;
 
     public MQTTClient(UUID player_uuid, String broker) {
         writeInfo(ChatColor.GOLD + "" + ChatColor.BOLD
@@ -38,14 +36,8 @@ public class MQTTClient {
                 + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
                 + broker);
 
-        this.broker = broker;
-
         client = Mqtt5Client.builder().serverHost(broker).buildAsync();
         connection = client.connect();
-    }
-
-    public String getBroker() {
-        return broker;
     }
 
     public CompletableFuture<Mqtt5ConnAck> getConnection() {

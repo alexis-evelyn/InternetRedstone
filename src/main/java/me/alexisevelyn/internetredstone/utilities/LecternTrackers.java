@@ -2,6 +2,7 @@ package me.alexisevelyn.internetredstone.utilities;
 
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
+import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Bukkit;
@@ -150,11 +151,12 @@ public class LecternTrackers {
     }
 
     public void cleanup() {
-        for (LecternTracker tracker : trackers.values()) {
+        for (Tracker tracker : trackers.values()) {
             // Tell tracker to perform cleanup duties (e.g. finish sending data/saving/etc...)
             tracker.cleanup();
 
             // Mark tracker as eligible for garbage collection
+            //noinspection UnusedAssignment
             tracker = null;
         }
     }

@@ -2,7 +2,6 @@ package me.alexisevelyn.internetredstone.database.mysql;
 
 import com.axiomalaska.jdbc.NamedParameterPreparedStatement;
 import me.alexisevelyn.internetredstone.Main;
-import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;

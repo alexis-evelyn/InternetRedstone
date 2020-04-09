@@ -10,7 +10,6 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
-import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
@@ -24,7 +23,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
@@ -141,9 +139,9 @@ public class LecternTracker extends Tracker {
 
         // TODO: Setup username/password/tls support.
         //  Also, figure out if possible to hash password and still use it in MQTT
-        String username = config.getString("default.username");
-        String password = config.getString("default.password");
-        Boolean tls = config.getBoolean("default.tls", false);
+//        String username = config.getString("default.username");
+//        String password = config.getString("default.password");
+//        Boolean tls = config.getBoolean("default.tls", false);
 
         ResultSet lecternData;
         ResultSet playerData;

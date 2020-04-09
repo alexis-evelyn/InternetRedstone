@@ -17,12 +17,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.ResultSet;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 public class Main extends JavaPlugin {
     LecternTrackers trackers;
     Metrics metrics;
-    Integer pluginId = 7001;
+    final Integer pluginId = 7001;
 
     Configuration config;
     MySQLClient client;
@@ -86,32 +85,26 @@ public class Main extends JavaPlugin {
         metrics = new Metrics(this, pluginId);
 
         // Optional: Add custom charts
-        metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_lecterns", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                // Retrieves Number of Registered Lecterns - Nothing Else, Just The Number
-                ResultSet lecternCount = client.getNumberOfRegisteredLecterns();
+        metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_lecterns", () -> {
+            // Retrieves Number of Registered Lecterns - Nothing Else, Just The Number
+            ResultSet lecternCount = client.getNumberOfRegisteredLecterns();
 
-                if (lecternCount.next()) {
-                    return lecternCount.getString(1);
-                }
-
-                return "Failed To Retrieve Number of Registered Lecterns";
+            if (lecternCount.next()) {
+                return lecternCount.getString(1);
             }
+
+            return "Failed To Retrieve Number of Registered Lecterns";
         }));
 
-        metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_players", new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                // Retrieves Number of Registered Players - Nothing Else, Just The Number
-                ResultSet playerCount = client.getNumberOfRegisteredPlayers();
+        metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_players", () -> {
+            // Retrieves Number of Registered Players - Nothing Else, Just The Number
+            ResultSet playerCount = client.getNumberOfRegisteredPlayers();
 
-                if (playerCount.next()) {
-                    return playerCount.getString(1);
-                }
-
-                return "Failed To Retrieve Number of Registered Players";
+            if (playerCount.next()) {
+                return playerCount.getString(1);
             }
+
+            return "Failed To Retrieve Number of Registered Players";
         }));
 
         return metrics.isEnabled();
