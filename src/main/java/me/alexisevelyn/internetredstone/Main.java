@@ -7,10 +7,9 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
 import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Commands;
-import me.alexisevelyn.internetredstone.utilities.LecternTracker;
+import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
-import me.alexisevelyn.internetredstone.utilities.MojangUtilities;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
@@ -25,20 +24,16 @@ public class Main extends JavaPlugin {
     Metrics metrics;
     Integer pluginId = 7001;
 
+    Configuration config;
     MySQLClient client;
-    Thread sync;
 
     @Override
     public void onEnable() {
-        // Determine whether or not to output debug information
-        Logger.setDebugMode(true);
-
-        // Grab reference to synchronous thread to prevent me from being stupid with http requests
-        sync = Thread.currentThread();
-        MojangUtilities.setSync(sync);
+        // Setup and Load Config
+        config = new Configuration(this);
 
         // Register MySQL Client
-        client = new MySQLClient();
+        client = new MySQLClient(this);
 
         // Register bStats
         Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
@@ -63,6 +58,9 @@ public class Main extends JavaPlugin {
 
         // Register Bukkit Commands
         try {
+            // TODO: Add support for player friendly command (as in not admin)
+            //  Name it internetredstone or swap it and lecterns?
+
             PluginCommand lecterns = getCommand("lecterns");
             Objects.requireNonNull(lecterns).setExecutor(new Commands(trackers));
         } catch (NullPointerException exception) {
@@ -121,5 +119,9 @@ public class Main extends JavaPlugin {
 
     public MySQLClient getMySQLClient() {
         return client;
+    }
+
+    public Configuration getConfiguration() {
+        return config;
     }
 }

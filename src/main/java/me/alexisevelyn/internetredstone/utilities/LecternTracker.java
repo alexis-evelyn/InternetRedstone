@@ -10,6 +10,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
+import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
@@ -22,6 +23,7 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
@@ -130,11 +132,18 @@ public class LecternTracker extends Tracker {
 
         // This string will be read from Player's Config Or If None Provided, Server's Config
         // TODO: Attempt to retrieve broker from database, or if failed, then load from config
-        setBroker("broker.hivemq.com");
+        FileConfiguration config = getMain().getConfiguration().getConfig();
+        setBroker(config.getString("default.broker"));
+        config.getInt("default.port", 1883);
 
-        // Temporarily Hardcoded Server Value for Testing
         // TODO: Replace with loading value from config
-        String server_name = "alexis";
+        String server_name = config.getString("server-name");
+
+        // TODO: Setup username/password/tls support.
+        //  Also, figure out if possible to hash password and still use it in MQTT
+        String username = config.getString("default.username");
+        String password = config.getString("default.password");
+        Boolean tls = config.getBoolean("default.tls", false);
 
         ResultSet lecternData;
         ResultSet playerData;
@@ -152,7 +161,10 @@ public class LecternTracker extends Tracker {
                     setBroker(playerData.getString("broker"));
                 }
 
-                // TODO: Add username and password
+                // TODO: Add username, password, and tls
+//                username = username;
+//                password = password;
+//                tls = tls;
             }
         } catch(SQLException exception) {
             Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
@@ -195,14 +207,15 @@ public class LecternTracker extends Tracker {
     }
 
     private void addDatabaseEntry() {
-        // TODO: Add String for username, password!!!
-
         // The Runnable is to make sure MySQL is called synchronously as all trackers share the same connection.
         Bukkit.getScheduler().runTask(getMain(), () -> {
             try {
                 // Update Number of Registered Lecterns
 
-                mySQLClient.storeUserPreferences(getBroker(), null, null, getPlayer());
+                // Broker is set to null as user can set broker via commands. Same for username and password.
+                // The player data won't be overwritten by setting it again. The same goes for the lectern.
+                // Also, we are going to use the default settings provided by the server owner if it's null in the database.
+                mySQLClient.storeUserPreferences(null, null, null, getPlayer());
                 mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
             } catch (SQLException exception) {
                 Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD

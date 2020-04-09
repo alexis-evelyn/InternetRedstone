@@ -1,9 +1,14 @@
 package me.alexisevelyn.internetredstone.database.mysql;
 
 import com.axiomalaska.jdbc.NamedParameterPreparedStatement;
+import me.alexisevelyn.internetredstone.Main;
+import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.*;
 import java.util.UUID;
@@ -16,15 +21,22 @@ import java.util.UUID;
 public class MySQLClient {
     Connection connection;
 
-    public MySQLClient() {
+    public MySQLClient(Main main) {
         // TODO: Create database to store registered lecterns in as well as player preferences
+        FileConfiguration config = main.getConfiguration().getConfig();
 
-        String url = "jdbc:mysql://localhost:3306/internetredstone?useSSL=false";
-        String user = "internetredstone";
+        String url = config.getString("mysql.url");
+        String user = config.getString("mysql.username");
+        String password = config.getString("mysql.password");
 
-        // As you can tell, this is not a real password. This is one that goes to a localhost
-        // development database. I use this database to test Minecraft plugins and other programs that need MySQL
-        String password = "localhost-dev-password";
+        if (StringUtils.isBlank(url) || StringUtils.isBlank(user) || StringUtils.isBlank(password) ) {
+            Logger.severe(ChatColor.GOLD + "" + ChatColor.DARK_PURPLE +
+                    "Cannot Continue Without MySQL URL/Username/and Password!!! Shutting Down!!!");
+
+            // Disable Our Own Plugin Since Data is Missing From Config!!!
+            Bukkit.getPluginManager().disablePlugin(main);
+            return;
+        }
 
         String query = "SELECT VERSION()";
 
@@ -51,6 +63,10 @@ public class MySQLClient {
                             + exception.getSQLState());
 
             Logger.printException(exception);
+
+            // Disable Our Own Plugin Since Something is Wrong With the MySQL Connection/Settings
+            Bukkit.getPluginManager().disablePlugin(main);
+            return;
         } catch (ClassNotFoundException exception) {
             // This should never run as long as the MySQL package is not shaded!!!
 
@@ -66,6 +82,10 @@ public class MySQLClient {
                     + "https://dev.mysql.com/downloads/connector/j/");
 
             Logger.printException(exception);
+
+            // Disable Our Own Plugin Since MySQL is Missing!!!
+            Bukkit.getPluginManager().disablePlugin(main);
+            return;
         }
 
         // Create MySQL Tables if Not Already Existing
@@ -111,6 +131,8 @@ public class MySQLClient {
             CREATE TABLE IF NOT EXISTS `Players` (
                 `entry` INT NOT NULL AUTO_INCREMENT COMMENT 'Used to help order entries by creation',
                 `broker` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user broker settings if defined. If null, default to server broker!',
+                `port` INT DEFAULT NULL COMMENT 'Used to set port for MQTT Client to use',
+                `tls` BOOLEAN DEFAULT NULL COMMENT 'Used to determine if tls will be used for MQTT Client',
                 `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.',
                 `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.',
                 `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\'s uuid to help associate player preferences with player objects.',
@@ -122,6 +144,8 @@ public class MySQLClient {
         String query = "CREATE TABLE IF NOT EXISTS `Players` (" +
                 " `entry` INT NOT NULL AUTO_INCREMENT COMMENT 'Used to help order entries by creation'," +
                 " `broker` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user broker settings if defined. If null, default to server broker!'," +
+                " `port` INT DEFAULT NULL COMMENT 'Used to set port for MQTT Client to use'," +
+                " `tls` BOOLEAN DEFAULT NULL COMMENT 'Used to determine if tls will be used for MQTT Client'," +
                 " `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
                 " `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
                 " `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate player preferences with player objects.'," +
@@ -356,7 +380,7 @@ public class MySQLClient {
         if (!isPlayerInDatabase(player))
             return null;
 
-        String query = "SELECT broker, username, password, numberOfLecternsRegistered FROM Lecterns" +
+        String query = "SELECT broker, username, password, numberOfLecternsRegistered FROM Players" +
                 " WHERE `uuid` = :uuid LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
