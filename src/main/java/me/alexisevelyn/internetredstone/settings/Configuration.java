@@ -21,7 +21,9 @@ public class Configuration {
         config = main.getConfig();
 
         // Debug is for debugging plugin, version is to upgrade config later
+        // Logger Print Color - Used to turn off color logging if your server doesn't support it
         config.addDefault("debug", false);
+        config.addDefault("logger.print.color", true);
         config.addDefault("version", "0.0.1");
 
         // Currently port and tls is not used
@@ -47,6 +49,7 @@ public class Configuration {
 
         // Determine whether or not to output debug information
         Logger.setDebugMode(config.getBoolean("debug", false));
+        Logger.setColorMode(config.getBoolean("logger.print.color", true));
     }
 
     public FileConfiguration getConfig() {

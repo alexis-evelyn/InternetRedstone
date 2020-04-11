@@ -2,6 +2,7 @@ package me.alexisevelyn.internetredstone.listeners.minecraft.commands;
 
 import me.alexisevelyn.internetredstone.utilities.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -48,16 +49,7 @@ public class Commands implements CommandExecutor {
 //            trackerMap.get(location).subscribe();
 
             sender.sendMessage(ChatColor.GOLD + "Registered Lectern Location: "
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockX()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockY()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockZ()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
+                    + Logger.getFormattedLocation(location)
 
                     + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
                     + " - "

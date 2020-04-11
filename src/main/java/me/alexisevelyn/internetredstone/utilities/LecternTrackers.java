@@ -42,24 +42,27 @@ public class LecternTrackers {
 
             UUID player;
             World world;
-            Location lectern = new Location(null, -1, -1, -1);
+            Location lectern;
 
             while (lecternsInfo.next()) {
                 player = UUID.fromString(lecternsInfo.getString("uuid"));
-
-                lectern.set(lecternsInfo.getDouble("x"),
-                        lecternsInfo.getDouble("y"),
-                        lecternsInfo.getDouble("z"));
-
                 world = Bukkit.getWorld(
                             UUID.fromString(
                                     lecternsInfo.getString("worldUID")
                             ));
 
-                lectern.setWorld(world);
+                lectern = new Location(world,
+                        lecternsInfo.getDouble("x"),
+                        lecternsInfo.getDouble("y"),
+                        lecternsInfo.getDouble("z"));
 
                 try {
                     registerTracker(lectern, player);
+
+                    Logger.finer(ChatColor.GOLD + "" + ChatColor.BOLD +
+                            "Registered Lectern At: " +
+                            Logger.getFormattedLocation(lectern));
+
                 } catch (DuplicateObjectException exception) {
                     Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
                             "Duplicate Lectern Found in Database On Startup!!!");
@@ -80,17 +83,9 @@ public class LecternTrackers {
     public LecternTracker registerTracker(Location location, UUID player) throws DuplicateObjectException {
         if (trackers.containsKey(location))
             throw new DuplicateObjectException(ChatColor.GOLD + "Tracker, "
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockX()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockY()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockZ()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
-                    + ChatColor.GOLD + ", already stored in database!!!");
+                    + Logger.getFormattedLocation(location)
+                    + ChatColor.GOLD + "" + ChatColor.BOLD
+                    + ", already stored in database!!!");
 
         LecternTracker tracker = new LecternTracker(main, location, player);
         trackers.put(location, tracker);
@@ -101,17 +96,9 @@ public class LecternTrackers {
     public void unregisterTracker(Location location) throws MissingObjectException {
         if (!trackers.containsKey(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockX()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockY()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockZ()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
-                    + ChatColor.GOLD + ", missing from database!!!");
+                    + Logger.getFormattedLocation(location)
+                    + ChatColor.GOLD + "" + ChatColor.BOLD
+                    + ", missing from database!!!");
 
         LecternTracker tracker = trackers.get(location);
         tracker.unregister();
@@ -127,16 +114,7 @@ public class LecternTrackers {
     public LecternTracker getTracker(Location location) {
         if (!isRegistered(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockX()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockY()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + location.getBlockZ()
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")"
+                    + Logger.getFormattedLocation(location)
                     + ChatColor.GOLD + ", missing from database!!!");
 
         return trackers.get(location);
