@@ -41,6 +41,7 @@ public class LecternTracker extends Tracker {
     String topic_uuid;
     String topic_ign;
     String broker;
+    Boolean retainMessage;
 
     MQTTClient client;
     MySQLClient mySQLClient;
@@ -96,6 +97,10 @@ public class LecternTracker extends Tracker {
         this.broker = broker;
     }
 
+    private void setRetainMessage(Boolean retainMessage) {
+        this.retainMessage = retainMessage;
+    }
+
     public String getLecternID() {
         return lecternID;
     }
@@ -112,15 +117,19 @@ public class LecternTracker extends Tracker {
         return broker;
     }
 
+    public Boolean getRetainMessage() {
+        return retainMessage;
+    }
+
     public void sendRedstoneUpdate(Integer signal) {
         byte[] payload = signal.toString().getBytes();
 
         // Send Message To Topic With UUID
-        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
+        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
 
         // Send Message To Topic With IGN - Topic may be null here
         if (getTopic_ign() != null) {
-            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
+            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
         }
     }
 
@@ -136,6 +145,9 @@ public class LecternTracker extends Tracker {
 
         // TODO: Replace with loading value from config
         String server_name = config.getString("server-name");
+
+        // Determine if Should Send Retained Messages Or Not
+        setRetainMessage(config.getBoolean("default.retain", false));
 
         // TODO: Setup username/password/tls support.
         //  Also, figure out if possible to hash password and still use it in MQTT

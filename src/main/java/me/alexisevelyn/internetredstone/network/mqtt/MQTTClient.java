@@ -51,10 +51,16 @@ public class MQTTClient {
 
     @SuppressWarnings("UnusedReturnValue")
     public CompletableFuture<Mqtt5PublishResult> sendMessage(String topic, byte[] payload, MqttQos qos) {
+        return sendMessage(topic, payload, qos, false);
+    }
+
+
+    public CompletableFuture<Mqtt5PublishResult> sendMessage(String topic, byte[] payload, MqttQos qos, Boolean retain) {
         return connection.thenCompose(result -> client.publishWith()
                 .topic(topic)
                 .payload(payload)
                 .qos(qos)
+                .retain(retain)
                 .send());
     }
 

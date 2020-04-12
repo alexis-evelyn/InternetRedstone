@@ -30,6 +30,7 @@ public class Configuration {
         config.addDefault("default.broker", "broker.hivemq.com");
         config.addDefault("default.port", 1883);
         config.addDefault("default.tls", false);
+        config.addDefault("default.retain", true);
 
         // MQTT Client may not use username and password, so set to null by default
         config.addDefault("default.username", null);
