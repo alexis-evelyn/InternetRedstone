@@ -147,7 +147,7 @@ public class LecternTracker extends Tracker {
         String server_name = config.getString("server-name");
 
         // Determine if Should Send Retained Messages Or Not
-        setRetainMessage(config.getBoolean("default.retain", false));
+        setRetainMessage(config.getBoolean("default.retain", true));
 
         // TODO: Setup username/password/tls support.
         //  Also, figure out if possible to hash password and still use it in MQTT

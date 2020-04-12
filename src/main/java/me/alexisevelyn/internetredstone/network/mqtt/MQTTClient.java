@@ -56,6 +56,19 @@ public class MQTTClient {
 
 
     public CompletableFuture<Mqtt5PublishResult> sendMessage(String topic, byte[] payload, MqttQos qos, Boolean retain) {
+
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Publishing...");
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "---");
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Topic: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + topic);
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Payload Length: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + payload.length);
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "QOS: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + qos.toString());
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Retained: "
+                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + retain);
+        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "---");
+
         return connection.thenCompose(result -> client.publishWith()
                 .topic(topic)
                 .payload(payload)
