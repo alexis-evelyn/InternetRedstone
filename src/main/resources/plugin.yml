@@ -7,8 +7,37 @@ load: POSTWORLD
 
 # Commands and Base Permissions
 commands:
+  internetredstone:
+    description: Configure/Reload the plugin
+    usage: /internetredstone reload
+    permission: internetredstone.admin.command.internetredstone
+    permission-message: You don't have the internetredstone.admin.command.internetredstone permission.
   lecterns:
     description: List the registered lecterns
     usage: /lecterns
-    permission: me.alexisevelyn.internetredstone.admin
-    permission-message: You don't have the me.alexisevelyn.internetredstone.admin permission.
+    permission: internetredstone.player.command.lecterns
+    permission-message: You don't have the internetredstone.player.command.lecterns permission.
+
+permissions:
+  internetredstone.*:
+    description: Gives access to all Internet Redstone Permissions
+    children:
+      me.alexisevelyn.internetredstone.admin: true
+      me.alexisevelyn.internetredstone.player: true
+    default: op
+  internetredstone.admin:
+    description: Access to all admin permissions
+    children:
+      internetredstone.admin.lecterns: true
+    default: op
+  internetredstone.player:
+    description: Access to all player permissions
+    children:
+      internetredstone.player.command.lecterns: true
+    default: true
+  internetredstone.admin.command.internetredstone:
+    description: Allows you to run the admin command /internetredstone
+    default: false
+  internetredstone.player.command.lecterns:
+    description: Allows you to run the player command /lecterns
+    default: false

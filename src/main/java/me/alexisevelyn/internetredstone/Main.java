@@ -62,6 +62,9 @@ public class Main extends JavaPlugin {
 
             PluginCommand lecterns = getCommand("lecterns");
             Objects.requireNonNull(lecterns).setExecutor(new Commands(trackers));
+
+            PluginCommand internetredstone = getCommand("internetredstone");
+            Objects.requireNonNull(internetredstone).setExecutor(new Commands(trackers));
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }
