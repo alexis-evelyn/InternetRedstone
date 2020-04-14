@@ -13,6 +13,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
+import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bukkit.ChatColor;
 
@@ -21,27 +22,14 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+@Data
 public class MQTTClient {
     final Mqtt5AsyncClient client;
     final CompletableFuture<Mqtt5ConnAck> connection;
 
-    public MQTTClient(UUID player_uuid, String broker) {
-        writeInfo(ChatColor.GOLD + "" + ChatColor.BOLD
-                + "Registered Client For: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + player_uuid);
-
-        writeInfo(ChatColor.GOLD + "" + ChatColor.BOLD
-                + "With Broker: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + broker);
-
+    public MQTTClient(String broker) {
         client = Mqtt5Client.builder().serverHost(broker).buildAsync();
         connection = client.connect();
-    }
-
-    public CompletableFuture<Mqtt5ConnAck> getConnection() {
-        return connection;
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -56,35 +44,12 @@ public class MQTTClient {
 
 
     public CompletableFuture<Mqtt5PublishResult> sendMessage(String topic, byte[] payload, MqttQos qos, Boolean retain) {
-
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Publishing...");
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "---");
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Topic: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + topic);
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Payload Length: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + payload.length);
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "QOS: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + qos.toString());
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "Retained: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + retain);
-        Logger.finest(ChatColor.AQUA + "" + ChatColor.BOLD + "---");
-
         return connection.thenCompose(result -> client.publishWith()
                 .topic(topic)
                 .payload(payload)
                 .qos(qos)
                 .retain(retain)
                 .send());
-    }
-
-//    @SuppressWarnings("UnusedReturnValue")
-//    public CompletableFuture<Void> readResult(CompletableFuture<Mqtt5PublishResult> result) {
-//        // Not Sure How To Implement Yet
-//        return result.thenAccept(read -> writeInfo(ChatColor.DARK_GREEN + "Result: " + read));
-//    }
-
-    private void writeInfo(String message) {
-        Logger.info(message);
     }
 
     // Simple method to subscribe to topics with default settings
@@ -125,14 +90,6 @@ public class MQTTClient {
     // Ultimately Called Subscribe Function
     // When extending the class, use this to have full control over MQTT Setup
     public CompletableFuture<Mqtt5SubAck> subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
-        // For Super Debug - List All Subscribed Topics Every Time Ready to Subscribe
-//        if (Logger.isDebugMode())
-//            for (MqttSubscription line : subscription.getSubscriptions().trim()) // .trim() seems to strip everything, find a way to get an iterable list
-//                Logger.finer(ChatColor.DARK_GREEN + "" + ChatColor.BOLD
-//                        + "Topics To Subscribe: "
-//                        + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-//                        + line.getTopicFilter().toString());
-
         return client.subscribe(subscription, callback);
     }
 }

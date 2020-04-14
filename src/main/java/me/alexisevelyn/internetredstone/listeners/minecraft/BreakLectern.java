@@ -1,6 +1,7 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import lombok.Data;
+import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Location;
@@ -11,12 +12,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
+@Data
 public class BreakLectern implements Listener {
-    final LecternTrackers trackers;
-
-    public BreakLectern(LecternTrackers trackers) {
-        this.trackers = trackers;
-    }
+    final private LecternHandlers trackers;
 
     // We want to be the last to know if the lectern is broken, that way we can ignore it if a claim plugin prevented the breakage
     // The way priorities work is that we get the last say at highest priority and therefor what we say happens.
@@ -32,7 +30,7 @@ public class BreakLectern implements Listener {
                 Location location = snapshot.getLocation();
 
                 if (trackers.isRegistered(location))
-                    trackers.unregisterTracker(location);
+                    trackers.unregisterHandler(location);
             } catch (MissingObjectException exception) {
                 Logger.printException(exception);
             }

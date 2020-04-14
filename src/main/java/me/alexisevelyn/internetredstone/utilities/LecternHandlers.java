@@ -3,7 +3,6 @@ package me.alexisevelyn.internetredstone.utilities;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
-import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,23 +14,20 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LecternTrackers {
+public class LecternHandlers {
     // Main class used to get synchronous execution
     final Main main;
 
     // List of Tracker Objects
-    final ConcurrentHashMap<Location, LecternTracker> trackers;
+    final private ConcurrentHashMap<Location, LecternHandler> handlers;
 
-    // Identifier to Look For In Order To Help Track Lecterns
-    final static String identifier = "[Internet Redstone]";
-
-    public LecternTrackers(Main main) {
+    public LecternHandlers(Main main) {
         this.main = main;
 
-        trackers = new ConcurrentHashMap<>();
+        handlers = new ConcurrentHashMap<>();
     }
 
-    public void registerSavedTrackers() {
+    public void registerSavedHandlers() {
         MySQLClient mySQLClient = main.getMySQLClient();
 
         try {
@@ -56,19 +52,12 @@ public class LecternTrackers {
                         lecternsInfo.getDouble("y"),
                         lecternsInfo.getDouble("z"));
 
-                try {
-                    registerTracker(lectern, player);
+                registerHandler(lectern, player);
 
-                    Logger.finer(ChatColor.GOLD + "" + ChatColor.BOLD +
-                            "Registered Lectern At: " +
-                            Logger.getFormattedLocation(lectern));
+                Logger.finer(ChatColor.GOLD + "" + ChatColor.BOLD +
+                        "Registered Lectern At: " +
+                        Logger.getFormattedLocation(lectern));
 
-                } catch (DuplicateObjectException exception) {
-                    Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
-                            "Duplicate Lectern Found in Database On Startup!!!");
-
-                    Logger.printException(exception);
-                }
             }
 
         } catch (SQLException exception) {
@@ -79,57 +68,47 @@ public class LecternTrackers {
         }
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    public LecternTracker registerTracker(Location location, UUID player) throws DuplicateObjectException {
-        if (trackers.containsKey(location))
-            throw new DuplicateObjectException(ChatColor.GOLD + "Tracker, "
-                    + Logger.getFormattedLocation(location)
-                    + ChatColor.GOLD + "" + ChatColor.BOLD
-                    + ", already stored in database!!!");
+    public void registerHandler(Location location, UUID player) {
+        if (handlers.containsKey(location))
+            return;
 
-        LecternTracker tracker = new LecternTracker(main, location, player);
-        trackers.put(location, tracker);
-
-        return tracker;
+        LecternHandler handler = new LecternHandler(main, location, player);
+        handlers.put(location, handler);
     }
 
-    public void unregisterTracker(Location location) throws MissingObjectException {
-        if (!trackers.containsKey(location))
+    public void unregisterHandler(Location location) throws MissingObjectException {
+        if (!handlers.containsKey(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
                     + Logger.getFormattedLocation(location)
                     + ChatColor.GOLD + "" + ChatColor.BOLD
                     + ", missing from database!!!");
 
-        LecternTracker tracker = trackers.get(location);
-        tracker.unregister();
+        LecternHandler handler = handlers.get(location);
+        handler.unregister();
 
-        trackers.remove(location);
+        handlers.remove(location);
     }
 
     public boolean isRegistered(Location location) {
-        return trackers.containsKey(location);
+        return handlers.containsKey(location);
     }
 
     @lombok.SneakyThrows
-    public LecternTracker getTracker(Location location) {
+    public LecternHandler getHandler(Location location) {
         if (!isRegistered(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
                     + Logger.getFormattedLocation(location)
                     + ChatColor.GOLD + ", missing from database!!!");
 
-        return trackers.get(location);
+        return handlers.get(location);
     }
 
-    public static String getIdentifier() {
-        return identifier;
-    }
-
-    public ConcurrentHashMap<Location, LecternTracker> getTrackers() {
-        return trackers;
+    public ConcurrentHashMap<Location, LecternHandler> getHandlers() {
+        return handlers;
     }
 
     public void cleanup() {
-        for (Tracker tracker : trackers.values()) {
+        for (Tracker tracker : handlers.values()) {
             // Tell tracker to perform cleanup duties (e.g. finish sending data/saving/etc...)
             tracker.cleanup();
 

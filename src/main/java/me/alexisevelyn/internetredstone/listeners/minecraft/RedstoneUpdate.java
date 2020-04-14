@@ -1,7 +1,8 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import me.alexisevelyn.internetredstone.utilities.LecternTracker;
-import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import lombok.Data;
+import me.alexisevelyn.internetredstone.utilities.LecternHandler;
+import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
@@ -21,12 +22,9 @@ import org.bukkit.inventory.meta.BookMeta;
  * This is not a true Redstone update listener. The actual Redstone update listener doesn't trigger on the Lectern.
  * So, instead, I have to use a BlockPhysicsEvent and filter out all the unnecessary noise.
  */
+@Data
 public class RedstoneUpdate implements Listener {
-    final LecternTrackers trackers;
-
-    public RedstoneUpdate(LecternTrackers trackers) {
-        this.trackers = trackers;
-    }
+    final LecternHandlers handlers;
 
     // We get called last, so a claim plugin can handle their stuff before we get the event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -40,13 +38,13 @@ public class RedstoneUpdate implements Listener {
 
             // If Tracker Not Registered, Don't Bother
             // We Won't Register Here As We Will Register on Startup
-            if (!trackers.isRegistered(location))
+            if (!handlers.isRegistered(location))
                 return;
 
-            LecternTracker tracker = trackers.getTracker(location);
+            LecternHandler handler = handlers.getHandler(location);
 
             // Prevent Sending Duplicate Redstone Power Levels
-            if (tracker.isLastKnownPower(snapshot.getBlock().getBlockPower()))
+            if (handler.isLastKnownPower(snapshot.getBlock().getBlockPower()))
                 return;
 
             ItemStack book;
@@ -61,14 +59,14 @@ public class RedstoneUpdate implements Listener {
             }
 
             // If not marked as a special Lectern, then ignore
-            if (!LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier()))
+            if (!LecternUtilities.hasIdentifier(bookMeta, LecternUtilities.getIdentifier()))
                 return;
 
             // Now that the lectern verification is finished, store the current power level to prevent duplicates later
-            tracker.setLastKnownPower(lectern.getBlock().getBlockPower());
+            handler.setLastKnownPower(lectern.getBlock().getBlockPower());
 
             try {
-                tracker.sendRedstoneUpdate(lectern.getBlock().getBlockPower());
+                handler.sendRedstoneUpdate(lectern.getBlock().getBlockPower());
             } catch (Exception exception) {
                 Logger.printException(exception);
             }

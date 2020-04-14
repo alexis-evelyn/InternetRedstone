@@ -1,7 +1,8 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft.commands;
 
-import me.alexisevelyn.internetredstone.utilities.LecternTracker;
-import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import lombok.Data;
+import me.alexisevelyn.internetredstone.utilities.LecternHandler;
+import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -12,12 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+@Data
 public class Commands implements CommandExecutor {
-    final LecternTrackers trackers;
-
-    public Commands(LecternTrackers trackers) {
-        this.trackers = trackers;
-    }
+    final LecternHandlers handlers;
 
     /**
      * Executes the given command, returning its success.
@@ -39,7 +37,7 @@ public class Commands implements CommandExecutor {
     }
 
     public void listTrackers(CommandSender sender) {
-        ConcurrentHashMap<Location, LecternTracker> trackerMap = trackers.getTrackers();
+        ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
 
         if (trackerMap.size() == 0) {
             sender.sendMessage(ChatColor.GOLD + "No Registered Lecterns!!!");

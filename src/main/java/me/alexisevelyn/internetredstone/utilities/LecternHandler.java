@@ -10,10 +10,10 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
+import me.alexisevelyn.internetredstone.utilities.abstracted.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
-import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
@@ -36,28 +36,22 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class LecternTracker extends Tracker {
-    String lecternID;
-    String topic_uuid;
-    String topic_ign;
-    String broker;
-    Boolean retainMessage;
-
-    MQTTClient client;
+public class LecternHandler extends LecternTracker {
     MySQLClient mySQLClient;
 
-    public LecternTracker(@NotNull Main main, Location location, UUID player) {
+    public LecternHandler(@NotNull Main main, Location location, UUID player) {
         // This is to be called on player registration
         // Originally the plan was to have 2 constructors, one with the player and one without the player (to be used on startup).
         setPlayer(player);
-        setupLecternTracker(main, location);
-    }
-
-    private void setupLecternTracker(@NotNull Main main, Location location) {
-        setLocation(location);
         setMain(main);
 
-        mySQLClient = main.getMySQLClient();
+        mySQLClient = getMain().getMySQLClient();
+
+        setupLecternTracker(location);
+    }
+
+    private void setupLecternTracker(Location location) {
+        setLocation(location);
 
         try {
             ArrayList<String> topics = loadLecternProperties();
@@ -66,70 +60,26 @@ public class LecternTracker extends Tracker {
              *
              * NOTE: For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
              */
-            client.getConnection()
-                    .thenAccept(read -> client.subscribe(topics, callback))
+            getClient().getConnection()
+                    .thenAccept(read -> getClient().subscribe(topics, callback))
                     .thenAccept(mysql -> addDatabaseEntry());
-        } catch (ConnectionFailedException exception) {
-            Logger.severe("Failed to even send the connect message!!!");
-        } catch (ConnectionClosedException exception) {
-            Logger.severe("Connection closed before ConnAck could be received!!! ConnAck is the server acknowledging our connection!!!");
-        } catch (Mqtt5ConnAckException exception) {
-            Logger.severe("ConnAck Exception Received!!! Server sent an error response!!!");
+        } catch (ConnectionFailedException | ConnectionClosedException | Mqtt5ConnAckException exception) {
+            Logger.severe("Failed to connect to MQTT Server!!!");
             Logger.printException(exception);
         } catch (MqttClientStateException exception) {
             Logger.warning("Already Connected or Connecting!!!");
         }
     }
 
-    private void setLecternID(String lecternID) {
-        this.lecternID = lecternID;
-    }
-
-    private void setTopic_uuid(String topic_uuid) {
-        this.topic_uuid = topic_uuid;
-    }
-
-    private void setTopic_ign(String topic_ign) {
-        this.topic_ign = topic_ign;
-    }
-
-    private void setBroker(String broker) {
-        this.broker = broker;
-    }
-
-    private void setRetainMessage(Boolean retainMessage) {
-        this.retainMessage = retainMessage;
-    }
-
-    public String getLecternID() {
-        return lecternID;
-    }
-
-    public String getTopic_uuid() {
-        return topic_uuid;
-    }
-
-    public String getTopic_ign() {
-        return topic_ign;
-    }
-
-    public String getBroker() {
-        return broker;
-    }
-
-    public Boolean getRetainMessage() {
-        return retainMessage;
-    }
-
     public void sendRedstoneUpdate(Integer signal) {
         byte[] payload = signal.toString().getBytes();
 
         // Send Message To Topic With UUID
-        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
+        getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
 
         // Send Message To Topic With IGN - Topic may be null here
         if (getTopic_ign() != null) {
-            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
+            getClient().sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
         }
     }
 
@@ -192,7 +142,7 @@ public class LecternTracker extends Tracker {
         }
 
         // Create MQTT Client For Lectern
-        client = new MQTTClient(player, getBroker());
+        setClient(new MQTTClient(getBroker()));
 
         // List of Topics to Subscribe To
         // TODO: Eventually Allow Customizing Topic String In Config
@@ -375,7 +325,7 @@ public class LecternTracker extends Tracker {
         }
 
         bookMeta.setPage(1, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                + LecternTrackers.getIdentifier()
+                + LecternUtilities.getIdentifier()
                 + "\n"
                 + page);
 
@@ -397,14 +347,14 @@ public class LecternTracker extends Tracker {
         byte[] payload = message.getBytes();
 
         // Send Message To Topic With UUID
-        client.sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
+        getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
 
         // Send Message To Topic With IGM - Topic may be null here
         if (getTopic_ign() != null) {
-            client.sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
+            getClient().sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
         }
 
-        client.disconnect();
+        getClient().disconnect();
 
         // Don't handle MySQL Client here as one instance is shared across all trackers!!!
     }

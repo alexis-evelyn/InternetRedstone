@@ -1,9 +1,9 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import lombok.Data;
+import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.Logger;
-import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import org.bukkit.ChatColor;
@@ -23,12 +23,9 @@ import org.bukkit.inventory.meta.BookMeta;
 import java.util.Objects;
 import java.util.UUID;
 
+@Data
 public class InteractWithLectern implements Listener {
-    final LecternTrackers trackers;
-
-    public InteractWithLectern(LecternTrackers trackers) {
-        this.trackers = trackers;
-    }
+    final private LecternHandlers handlers;
 
     // We get called last, so a claim plugin can handle their stuff before we get the event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -76,10 +73,8 @@ public class InteractWithLectern implements Listener {
                 Location location = lectern.getLocation();
                 UUID player_uuid = player.getUniqueId();
 
-                if (!trackers.isRegistered(location))
-                    trackers.registerTracker(location, player_uuid);
-            } catch (DuplicateObjectException exception) {
-                Logger.printException(exception);
+                if (!handlers.isRegistered(location))
+                    handlers.registerHandler(location, player_uuid);
             } catch (NullPointerException exception) {
                 Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
                         + "InteractWithLectern: Failed to Initialize Lectern Tracker!!!");
@@ -118,7 +113,7 @@ public class InteractWithLectern implements Listener {
         }
 
         // If not marked as a special Lectern, then ignore
-        return LecternUtilities.hasIdentifier(bookMeta, LecternTrackers.getIdentifier());
+        return LecternUtilities.hasIdentifier(bookMeta, LecternUtilities.getIdentifier());
     }
 
     private boolean checkHand(PlayerInteractEvent event) {

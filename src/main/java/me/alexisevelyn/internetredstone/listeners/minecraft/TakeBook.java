@@ -1,6 +1,7 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import lombok.Data;
+import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Location;
@@ -9,12 +10,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 
+@Data
 public class TakeBook implements Listener {
-    final LecternTrackers trackers;
-
-    public TakeBook(LecternTrackers trackers) {
-        this.trackers = trackers;
-    }
+    final private LecternHandlers handlers;
 
     // We get called last, so a claim plugin can handle their stuff before we get the event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -23,8 +21,8 @@ public class TakeBook implements Listener {
         try {
             Location location = event.getLectern().getLocation();
 
-            if (trackers.isRegistered(location))
-                trackers.unregisterTracker(location);
+            if (handlers.isRegistered(location))
+                handlers.unregisterHandler(location);
         } catch (MissingObjectException exception) {
             Logger.printException(exception);
         }

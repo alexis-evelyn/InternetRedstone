@@ -1,6 +1,7 @@
 package me.alexisevelyn.internetredstone;
 
 import io.reactivex.plugins.RxJavaPlugins;
+import lombok.Data;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.listeners.minecraft.BreakLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
@@ -8,7 +9,7 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
 import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Commands;
 import me.alexisevelyn.internetredstone.settings.Configuration;
-import me.alexisevelyn.internetredstone.utilities.LecternTrackers;
+import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
@@ -19,12 +20,12 @@ import java.sql.ResultSet;
 import java.util.Objects;
 
 public class Main extends JavaPlugin {
-    LecternTrackers trackers;
-    Metrics metrics;
-    final Integer pluginId = 7001;
+    private LecternHandlers handlers;
+    private Metrics metrics;
+    final private Integer pluginId = 7001;
 
-    Configuration config;
-    MySQLClient client;
+    private Configuration config;
+    private MySQLClient client;
 
     @Override
     public void onEnable() {
@@ -44,16 +45,16 @@ public class Main extends JavaPlugin {
         RxJavaPlugins.setErrorHandler(Logger::rxHandler);
 
         // Register lectern trackers class
-        trackers = new LecternTrackers(this);
+        handlers = new LecternHandlers(this);
 
         // Register Saved Trackers From Database
-        trackers.registerSavedTrackers();
+        handlers.registerSavedHandlers();
 
         // Register Bukkit Event Listeners
-        getServer().getPluginManager().registerEvents(new RedstoneUpdate(trackers), this);
-        getServer().getPluginManager().registerEvents(new InteractWithLectern(trackers), this);
-        getServer().getPluginManager().registerEvents(new TakeBook(trackers), this);
-        getServer().getPluginManager().registerEvents(new BreakLectern(trackers), this);
+        getServer().getPluginManager().registerEvents(new RedstoneUpdate(handlers), this);
+        getServer().getPluginManager().registerEvents(new InteractWithLectern(handlers), this);
+        getServer().getPluginManager().registerEvents(new TakeBook(handlers), this);
+        getServer().getPluginManager().registerEvents(new BreakLectern(handlers), this);
 
         // Register Bukkit Commands
         try {
@@ -61,10 +62,10 @@ public class Main extends JavaPlugin {
             //  Name it internetredstone or swap it and lecterns?
 
             PluginCommand lecterns = getCommand("lecterns");
-            Objects.requireNonNull(lecterns).setExecutor(new Commands(trackers));
+            Objects.requireNonNull(lecterns).setExecutor(new Commands(handlers));
 
             PluginCommand internetredstone = getCommand("internetredstone");
-            Objects.requireNonNull(internetredstone).setExecutor(new Commands(trackers));
+            Objects.requireNonNull(internetredstone).setExecutor(new Commands(handlers));
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }
@@ -75,8 +76,8 @@ public class Main extends JavaPlugin {
         // Plugin shutdown logic
 
         // Close MQTT Connections Properly (So, players can get notified on server shutdown/etc...)
-        trackers.cleanup();
-        trackers = null;
+        handlers.cleanup();
+        handlers = null;
 
         // Close MySQL Connection
         client.disconnect();
