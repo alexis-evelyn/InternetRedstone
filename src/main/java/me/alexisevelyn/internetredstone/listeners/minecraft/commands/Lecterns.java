@@ -47,7 +47,7 @@ public class Lecterns implements CommandExecutor {
             sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD
                     + "Lectern: "
                     + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
-                    + location.getWorld().getName()
+                    + location.getWorld().getName() + " "
                     + Logger.getFormattedLocation(location)
 
                     + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
