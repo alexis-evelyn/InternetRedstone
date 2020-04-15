@@ -1,8 +1,10 @@
 package me.alexisevelyn.internetredstone.utilities;
 
+import lombok.SneakyThrows;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
+import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -68,15 +70,20 @@ public class LecternHandlers {
         }
     }
 
+    @SneakyThrows
     public void registerHandler(Location location, UUID player) {
         if (handlers.containsKey(location))
-            return;
+            throw new DuplicateObjectException(ChatColor.GOLD + "Tracker, "
+                    + Logger.getFormattedLocation(location)
+                    + ChatColor.GOLD + "" + ChatColor.BOLD
+                    + ", already registered in database!!!");
 
         LecternHandler handler = new LecternHandler(main, location, player);
         handlers.put(location, handler);
     }
 
-    public void unregisterHandler(Location location) throws MissingObjectException {
+    @SneakyThrows
+    public void unregisterHandler(Location location) {
         if (!handlers.containsKey(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
                     + Logger.getFormattedLocation(location)

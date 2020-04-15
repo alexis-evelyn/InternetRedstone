@@ -1,13 +1,12 @@
 package me.alexisevelyn.internetredstone;
 
 import io.reactivex.plugins.RxJavaPlugins;
-import lombok.Data;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.listeners.minecraft.BreakLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
 import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
 import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
-import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Commands;
+import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Lecterns;
 import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
@@ -21,8 +20,6 @@ import java.util.Objects;
 
 public class Main extends JavaPlugin {
     private LecternHandlers handlers;
-    private Metrics metrics;
-    final private Integer pluginId = 7001;
 
     private Configuration config;
     private MySQLClient client;
@@ -62,10 +59,10 @@ public class Main extends JavaPlugin {
             //  Name it internetredstone or swap it and lecterns?
 
             PluginCommand lecterns = getCommand("lecterns");
-            Objects.requireNonNull(lecterns).setExecutor(new Commands(handlers));
+            Objects.requireNonNull(lecterns).setExecutor(new Lecterns(handlers));
 
             PluginCommand internetredstone = getCommand("internetredstone");
-            Objects.requireNonNull(internetredstone).setExecutor(new Commands(handlers));
+            Objects.requireNonNull(internetredstone).setExecutor(new Lecterns(handlers));
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }
@@ -85,8 +82,10 @@ public class Main extends JavaPlugin {
     }
 
     protected Boolean registerStats() {
+        final int pluginId = 7001;
+
         // bStats Tracker
-        metrics = new Metrics(this, pluginId);
+        final Metrics metrics = new Metrics(this, pluginId);
 
         // Optional: Add custom charts
         metrics.addCustomChart(new Metrics.SimplePie("number_of_registered_lecterns", () -> {

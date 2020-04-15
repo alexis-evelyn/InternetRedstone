@@ -1,9 +1,10 @@
 package me.alexisevelyn.internetredstone.utilities.abstracted;
 
 import lombok.Data;
-import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
+import lombok.EqualsAndHashCode;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public abstract class LecternTracker extends Tracker {
     String lecternID;

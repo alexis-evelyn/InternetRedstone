@@ -26,14 +26,10 @@ public class BreakLectern implements Listener {
 
         if (snapshot instanceof Lectern) {
             // Unregister Lectern With Plugin if Registered
-            try {
-                Location location = snapshot.getLocation();
+            Location location = snapshot.getLocation();
 
-                if (trackers.isRegistered(location))
-                    trackers.unregisterHandler(location);
-            } catch (MissingObjectException exception) {
-                Logger.printException(exception);
-            }
+            if (trackers.isRegistered(location))
+                trackers.unregisterHandler(location);
         }
     }
 }

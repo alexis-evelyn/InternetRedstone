@@ -72,6 +72,10 @@ public class LecternHandler extends LecternTracker {
     }
 
     public void sendRedstoneUpdate(Integer signal) {
+        // Sending Update Means Last Known Power Needs To Be Set
+        setLastKnownPower(signal);
+
+        // Convert Integer to byte array for MQTT Client to Process
         byte[] payload = signal.toString().getBytes();
 
         // Send Message To Topic With UUID
@@ -248,10 +252,10 @@ public class LecternHandler extends LecternTracker {
 
                         try {
                             validateBook(lectern);
-                        } catch (InvalidLectern | InvalidBook exception) {
+                        } catch (InvalidBook exception) {
                             // Just return!!!
 
-                            Logger.warning("Failed to Get Lectern/Book: " + exception.getMessage());
+                            Logger.warning("Failed to Get Book: " + exception.getMessage());
                             return;
                         } catch (NotEnoughPages exception) {
                             String warning = ChatColor.DARK_RED + "" + ChatColor.BOLD
@@ -282,7 +286,7 @@ public class LecternHandler extends LecternTracker {
         }
     };
 
-    public void validateBook(Lectern lectern) throws InvalidBook, InvalidLectern, NotEnoughPages {
+    public void validateBook(Lectern lectern) throws InvalidBook, NotEnoughPages {
         LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
 
         ItemStack book;
@@ -316,10 +320,10 @@ public class LecternHandler extends LecternTracker {
         ItemStack book;
         BookMeta bookMeta;
 
+        book = LecternUtilities.getItem(inventory);
         try {
-            book = LecternUtilities.getItem(inventory);
             bookMeta = LecternUtilities.getBookMeta(book);
-        } catch (InvalidLectern | InvalidBook exception) {
+        } catch (InvalidBook exception) {
             Logger.warning("LecternTracker: " + exception.getMessage());
             return;
         }

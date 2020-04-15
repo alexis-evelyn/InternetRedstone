@@ -2,8 +2,6 @@ package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
-import me.alexisevelyn.internetredstone.utilities.Logger;
-import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,13 +16,9 @@ public class TakeBook implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void takeBook(PlayerTakeLecternBookEvent event) {
         // Unregister Lectern With Plugin if Registered
-        try {
-            Location location = event.getLectern().getLocation();
+        Location location = event.getLectern().getLocation();
 
-            if (handlers.isRegistered(location))
-                handlers.unregisterHandler(location);
-        } catch (MissingObjectException exception) {
-            Logger.printException(exception);
-        }
+        if (handlers.isRegistered(location))
+            handlers.unregisterHandler(location);
     }
 }

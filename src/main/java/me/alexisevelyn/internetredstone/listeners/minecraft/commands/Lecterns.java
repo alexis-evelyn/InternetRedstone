@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
-public class Commands implements CommandExecutor {
+public class Lecterns implements CommandExecutor {
     final LecternHandlers handlers;
 
     /**
@@ -44,14 +44,12 @@ public class Commands implements CommandExecutor {
         }
 
         for (Location location : trackerMap.keySet()) {
-//            trackerMap.get(location).subscribe();
-
             sender.sendMessage(ChatColor.GOLD + "Registered Lectern Location: "
                     + Logger.getFormattedLocation(location)
 
                     + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
                     + " - "
-                    + trackerMap.get(location).getTopic_uuid());
+                    + trackerMap.get(location).getLecternID());
         }
     }
 }
