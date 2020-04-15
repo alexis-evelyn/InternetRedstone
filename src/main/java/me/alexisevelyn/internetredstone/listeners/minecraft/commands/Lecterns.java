@@ -44,7 +44,10 @@ public class Lecterns implements CommandExecutor {
         }
 
         for (Location location : trackerMap.keySet()) {
-            sender.sendMessage(ChatColor.GOLD + "Registered Lectern Location: "
+            sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD
+                    + "Lectern: "
+                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+                    + location.getWorld().getName()
                     + Logger.getFormattedLocation(location)
 
                     + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
