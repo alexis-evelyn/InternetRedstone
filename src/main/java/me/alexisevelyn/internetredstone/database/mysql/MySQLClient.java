@@ -397,4 +397,20 @@ public class MySQLClient {
 
         return preparedStatement.executeQuery();
     }
+
+    // Used to Check If Lectern ID is Already Used On New Registration
+    public Boolean isLecternIDUsed(String uuid) throws SQLException {
+        String query = "SELECT EXISTS(SELECT entry FROM Lecterns" +
+                " WHERE `lecternID` = :lecternID LIMIT 1);";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("lecternID", uuid);
+
+        ResultSet doesExist = preparedStatement.executeQuery();
+
+        // If result is 1, then lectern is already registered, otherwise, if 0, it's not
+        return doesExist.next() && doesExist.getInt(1) == 1;
+    }
 }

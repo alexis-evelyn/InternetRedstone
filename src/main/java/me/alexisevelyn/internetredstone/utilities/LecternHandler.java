@@ -6,15 +6,12 @@ import com.hivemq.client.mqtt.exceptions.ConnectionFailedException;
 import com.hivemq.client.mqtt.exceptions.MqttClientStateException;
 import com.hivemq.client.mqtt.mqtt5.exceptions.Mqtt5ConnAckException;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
-
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
-import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidLectern;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
-
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -26,18 +23,20 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
+import org.hashids.Hashids;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public class LecternHandler extends LecternTracker {
     MySQLClient mySQLClient;
+    Hashids hashids;
 
     public LecternHandler(@NotNull Main main, Location location, UUID player) {
         // This is to be called on player registration
@@ -46,6 +45,9 @@ public class LecternHandler extends LecternTracker {
         setMain(main);
 
         mySQLClient = getMain().getMySQLClient();
+
+        // Grab Hash From Config Or If Failed, Generate One Randomly
+        hashids = new Hashids(getMain().getConfiguration().getConfig().getString("lectern.id-hash", UUID.randomUUID().toString()));
 
         setupLecternTracker(location);
     }
@@ -138,11 +140,41 @@ public class LecternHandler extends LecternTracker {
         }
 
         // Checks if String Was Previously Set Because Of MySQL Data
+        // Attempt to retrieve id from database, or if failed, then generate by other means
         if (StringUtils.isBlank(getLecternID())) {
             // Temporary Means of Generating Semi-Unique IDs for Testing
-            // TODO: Attempt to retrieve id from database, or if failed, then generate by other means
-            Random temporary = new Random();
-            setLecternID(String.valueOf(temporary.nextInt(100)));
+            int tries = getMain().getConfiguration().getConfig().getInt("lectern.generate-short-id-tries", 3);
+            int maxShortID = getMain().getConfiguration().getConfig().getInt("lectern.max-short-id", 10000);
+            boolean success = false;
+
+            SecureRandom random = new SecureRandom();
+            int chosenID;
+            for (int x = 0; x <= tries; x++) {
+                // Generate a Random Integer For Checking Against Database
+                chosenID = random.nextInt(maxShortID);
+
+                try {
+                    // If random integer is not being used, use it, otherwise try again
+                    if (!mySQLClient.isLecternIDUsed(String.valueOf(chosenID))) {
+                        setLecternID(hashids.encode(chosenID));
+                        success = true;
+
+                        break;
+                    }
+                } catch (SQLException exception) {
+                    // Failed to check against database, reverting to uuid method of id generation
+                    Logger.severe("SQLException When Checking Lectern IDS!!!");
+                    Logger.printException(exception);
+
+                    break;
+                }
+            }
+
+            // If failed to find a short and sweet id for the lectern,
+            // then just generate a Universally Unique Identifier
+            if (!success) {
+                setLecternID(UUID.randomUUID().toString());
+            }
         }
 
         // Create MQTT Client For Lectern

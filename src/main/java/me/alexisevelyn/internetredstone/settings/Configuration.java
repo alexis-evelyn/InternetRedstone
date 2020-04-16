@@ -2,13 +2,19 @@ package me.alexisevelyn.internetredstone.settings;
 
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.hashids.Hashids;
 
+import java.security.SecureRandom;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Configuration {
     final Main main;
     FileConfiguration config;
+    Hashids hashids;
+    SecureRandom random = new SecureRandom();
 
     public Configuration(Main main) {
         this.main = main;
@@ -41,8 +47,27 @@ public class Configuration {
         config.addDefault("mysql.username", "internetredstone");
         config.addDefault("mysql.password", "setMeToSomethingUnique");
 
+        // Used to seed the unique short id hashing algorithm
+        config.addDefault("lectern.id-hash", UUID.randomUUID().toString());
+
+        // Number of Tries to generate a short and sweet id for each lectern if one is not specified
+        config.addDefault("lectern.generate-short-id-tries", 3);
+
+        // Max Integer To Try To Use For Short ID Generation
+        config.addDefault("lectern.max-short-id", 10000);
+
+        try {
+            hashids = new Hashids(Objects.requireNonNull(config.get("lectern.id-hash")).toString());
+        } catch (NullPointerException exception) {
+            Logger.warning(ChatColor.GOLD + "" + ChatColor.BOLD
+                    + "Couldn't Retrieve id-hash from config, generating a random hash salt!!!");
+
+            hashids = new Hashids(UUID.randomUUID().toString());
+        }
+
         // Pick a random server name to start off with - Should be changed by server owner
-        config.addDefault("server-name", UUID.randomUUID().toString());
+        config.addDefault("server-name",
+                hashids.encode(random.nextInt(config.getInt("lectern.max-short-id", 10000))));
 
         // Copy Default Values From Shipped Config Into Ram
         config.options().copyDefaults(true);
