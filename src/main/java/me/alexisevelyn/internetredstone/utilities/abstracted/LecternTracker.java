@@ -12,6 +12,10 @@ public abstract class LecternTracker extends Tracker {
     String topic_ign;
     String broker;
     Boolean retainMessage;
+    String username;
+    String password;
+    Boolean tls;
+    Integer port;
 
     MQTTClient client;
 }

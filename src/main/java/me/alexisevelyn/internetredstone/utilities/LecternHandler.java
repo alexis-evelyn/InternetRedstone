@@ -99,7 +99,6 @@ public class LecternHandler extends LecternTracker {
         setBroker(config.getString("default.broker"));
         config.getInt("default.port", 1883);
 
-        // TODO: Replace with loading value from config
         String server_name = config.getString("server-name");
 
         // Determine if Should Send Retained Messages Or Not
@@ -107,9 +106,25 @@ public class LecternHandler extends LecternTracker {
 
         // TODO: Setup username/password/tls support.
         //  Also, figure out if possible to hash password and still use it in MQTT
-//        String username = config.getString("default.username");
-//        String password = config.getString("default.password");
-//        Boolean tls = config.getBoolean("default.tls", false);
+
+        String username = config.getString("default.username", null);
+        String password = config.getString("default.password", null);
+
+        /* Notes
+         *
+         * https://www.hivemq.com/blog/mqtt-security-fundamentals-authentication-username-password/
+         *
+         * The MQTT specification states that you can send a username without password,
+         * but it is not possible to send a password without username.
+         * MQTT version 3.1.1 also removes the previous recommendation for 12 character passwords.
+         */
+        if (StringUtils.isNotBlank(username)) {
+            setUsername(username);
+            setPassword(password);
+        }
+
+        setTls(config.getBoolean("default.tls", false));
+        setPort(config.getInt("default.tls", 1883));
 
         ResultSet lecternData;
         ResultSet playerData;
@@ -127,10 +142,20 @@ public class LecternHandler extends LecternTracker {
                     setBroker(playerData.getString("broker"));
                 }
 
-                // TODO: Add username, password, and tls
-//                username = username;
-//                password = password;
-//                tls = tls;
+                // TODO: Check if null and if not, set port
+//                if (playerData.getBoolean("port") != null) {
+//                    setPort(playerData.getInt("port"));
+//                }
+
+                if (StringUtils.isNotBlank(playerData.getString("username"))) {
+                    setUsername(playerData.getString("username"));
+                    setPassword(playerData.getString("password"));
+                }
+
+                // TODO: Check if null and if not, set tls
+//                if (playerData.getBoolean("tls") != null) {
+//                    setTls(playerData.getBoolean("tls"));
+//                }
             }
         } catch(SQLException exception) {
             Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
@@ -178,7 +203,10 @@ public class LecternHandler extends LecternTracker {
         }
 
         // Create MQTT Client For Lectern
-        setClient(new MQTTClient(getBroker()));
+        setClient(new MQTTClient(getBroker(), getPort(), getTls()));
+
+        // Client With Username/Password (TODO: Test if Works With Null Values)
+//        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword()));
 
         // List of Topics to Subscribe To
         // TODO: Eventually Allow Customizing Topic String In Config
@@ -223,18 +251,20 @@ public class LecternHandler extends LecternTracker {
     }
 
     public void unregister() {
-        try {
-            // Update Number of Registered Lecterns
-            //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
+        Bukkit.getScheduler().runTask(getMain(), () -> {
+            try {
+                // Update Number of Registered Lecterns
+                //mySQLClient.storeUserPreferences(client.getBroker(), null, null, getPlayer(), null, 0);
 
-            mySQLClient.unregisterLectern(getLocation());
-        } catch (SQLException exception) {
-            Logger.severe("Failed to remove database entries in Lectern Tracker!!!");
+                mySQLClient.unregisterLectern(getLocation());
+            } catch (SQLException exception) {
+                Logger.severe("Failed to remove database entries in Lectern Tracker!!!");
 
-            Logger.printException(exception);
-        }
+                Logger.printException(exception);
+            }
 
-        cleanup();
+            cleanup();
+        });
     }
 
     // Function To Run Asynchronously When Message is Received

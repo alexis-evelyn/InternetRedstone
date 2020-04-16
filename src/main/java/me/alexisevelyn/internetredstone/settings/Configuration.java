@@ -38,9 +38,9 @@ public class Configuration {
         config.addDefault("default.tls", false);
         config.addDefault("default.retain", true);
 
-        // MQTT Client may not use username and password, so set to null by default
-        config.addDefault("default.username", null);
-        config.addDefault("default.password", null);
+        // MQTT Client may not use username and password, so set to a blank value by default
+        config.addDefault("default.username", "");
+        config.addDefault("default.password", "");
 
         // Needs to be changed after set during first load
         config.addDefault("mysql.url", "jdbc:mysql://localhost:3306/internetredstone?useSSL=false");

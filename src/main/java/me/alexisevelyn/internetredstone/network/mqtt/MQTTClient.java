@@ -2,6 +2,8 @@ package me.alexisevelyn.internetredstone.network.mqtt;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttTopicFilterImpl;
 import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertiesImpl;
+import com.hivemq.client.internal.mqtt.datatypes.MqttUtf8StringImpl;
+import com.hivemq.client.internal.mqtt.message.auth.MqttSimpleAuth;
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscribe;
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscription;
 import com.hivemq.client.internal.util.collections.ImmutableList;
@@ -17,8 +19,8 @@ import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import org.bukkit.ChatColor;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -27,8 +29,47 @@ public class MQTTClient {
     final Mqtt5AsyncClient client;
     final CompletableFuture<Mqtt5ConnAck> connection;
 
-    public MQTTClient(String broker) {
-        client = Mqtt5Client.builder().serverHost(broker).buildAsync();
+    public MQTTClient(String broker, Integer port, Boolean tls) {
+        if (tls) {
+            client = Mqtt5Client
+                    .builder()
+                    .serverHost(broker)
+                    .serverPort(port)
+                    .sslWithDefaultConfig()
+                    .buildAsync();
+        } else {
+            client = Mqtt5Client
+                    .builder()
+                    .serverHost(broker)
+                    .serverPort(port)
+                    .buildAsync();
+        }
+
+        connection = client.connect();
+    }
+
+    public MQTTClient(String broker, Integer port, Boolean tls, String username, String password) {
+        MqttUtf8StringImpl formattedUsername = MqttUtf8StringImpl.of(username);
+        ByteBuffer formattedPassword = ByteBuffer.wrap(password.getBytes());
+
+        MqttSimpleAuth simpleAuth = new MqttSimpleAuth(formattedUsername, formattedPassword);
+
+        if (tls) {
+            client = Mqtt5Client
+                    .builder()
+                    .serverHost(broker)
+                    .serverPort(port)
+                    .sslWithDefaultConfig()
+                    .simpleAuth(simpleAuth)
+                    .buildAsync();
+        } else {
+            client = Mqtt5Client
+                    .builder()
+                    .serverHost(broker)
+                    .serverPort(port)
+                    .buildAsync();
+        }
+
         connection = client.connect();
     }
 
