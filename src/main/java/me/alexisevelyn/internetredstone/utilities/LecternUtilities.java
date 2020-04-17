@@ -1,5 +1,6 @@
 package me.alexisevelyn.internetredstone.utilities;
 
+import com.hivemq.client.internal.mqtt.message.publish.MqttWillPublish;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;

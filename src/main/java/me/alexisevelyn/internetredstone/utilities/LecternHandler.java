@@ -1,10 +1,18 @@
 package me.alexisevelyn.internetredstone.utilities;
 
+import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
+import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertiesImpl;
+import com.hivemq.client.internal.mqtt.datatypes.MqttUtf8StringImpl;
+import com.hivemq.client.internal.mqtt.message.publish.MqttPublish;
+import com.hivemq.client.internal.mqtt.message.publish.MqttWillPublish;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
+import com.hivemq.client.mqtt.datatypes.MqttTopic;
 import com.hivemq.client.mqtt.exceptions.ConnectionClosedException;
 import com.hivemq.client.mqtt.exceptions.ConnectionFailedException;
 import com.hivemq.client.mqtt.exceptions.MqttClientStateException;
+import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperties;
 import com.hivemq.client.mqtt.mqtt5.exceptions.Mqtt5ConnAckException;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
@@ -26,6 +34,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.hashids.Hashids;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.sql.ResultSet;
@@ -202,12 +211,6 @@ public class LecternHandler extends LecternTracker {
             }
         }
 
-        // Create MQTT Client For Lectern
-//        setClient(new MQTTClient(getBroker(), getPort(), getTls()));
-
-        // Client With Username/Password (TODO: Test if Works With Null Values)
-        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword()));
-
         // List of Topics to Subscribe To
         // TODO: Eventually Allow Customizing Topic String In Config
         setTopic_uuid(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
@@ -226,6 +229,15 @@ public class LecternHandler extends LecternTracker {
             setTopic_ign(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
             topics.add(getTopic_ign());
         }
+
+        MqttTopicImpl lwt_topic = MqttTopicImpl.of(getTopic_uuid());
+        ByteBuffer lwt_payload = ByteBuffer.wrap("The server has unexpectedly disconnected!!! Your lectern is currently unreachable!!!".getBytes());
+
+        // Create MQTT Client For Lectern
+//        setClient(new MQTTClient(getBroker(), getPort(), getTls(), lwt_topic, lwt_payload));
+
+        // Client With Username/Password (TODO: Test if Works With Null Values)
+        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword(), lwt_topic, lwt_payload));
 
         return topics;
     }

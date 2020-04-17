@@ -1,9 +1,12 @@
 package me.alexisevelyn.internetredstone.network.mqtt;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttTopicFilterImpl;
+import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
 import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertiesImpl;
 import com.hivemq.client.internal.mqtt.datatypes.MqttUtf8StringImpl;
 import com.hivemq.client.internal.mqtt.message.auth.MqttSimpleAuth;
+import com.hivemq.client.internal.mqtt.message.publish.MqttPublish;
+import com.hivemq.client.internal.mqtt.message.publish.MqttWillPublish;
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscribe;
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscription;
 import com.hivemq.client.internal.util.collections.ImmutableList;
@@ -11,6 +14,7 @@ import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
@@ -29,26 +33,29 @@ public class MQTTClient {
     final Mqtt5AsyncClient client;
     final CompletableFuture<Mqtt5ConnAck> connection;
 
-    public MQTTClient(String broker, Integer port, Boolean tls) {
+    // TODO: Combine lwt stuff into one class to pass in as a single argument instead of passing in multiple arguments!!!
+    public MQTTClient(String broker, Integer port, Boolean tls, MqttTopicImpl lwt_topic, ByteBuffer lwt_payload) {
         if (tls) {
             client = Mqtt5Client
                     .builder()
                     .serverHost(broker)
                     .serverPort(port)
                     .sslWithDefaultConfig()
+                    .willPublish(generateLWT(lwt_topic, lwt_payload))
                     .buildAsync();
         } else {
             client = Mqtt5Client
                     .builder()
                     .serverHost(broker)
                     .serverPort(port)
+                    .willPublish(generateLWT(lwt_topic, lwt_payload))
                     .buildAsync();
         }
 
         connection = client.connect();
     }
 
-    public MQTTClient(String broker, Integer port, Boolean tls, String username, String password) {
+    public MQTTClient(String broker, Integer port, Boolean tls, String username, String password, MqttTopicImpl lwt_topic, ByteBuffer lwt_payload) {
         MqttUtf8StringImpl formattedUsername = MqttUtf8StringImpl.of(username);
         ByteBuffer formattedPassword = ByteBuffer.wrap(password.getBytes());
 
@@ -61,6 +68,7 @@ public class MQTTClient {
                     .serverPort(port)
                     .sslWithDefaultConfig()
                     .simpleAuth(simpleAuth)
+                    .willPublish(generateLWT(lwt_topic, lwt_payload))
                     .buildAsync();
         } else {
             client = Mqtt5Client
@@ -68,6 +76,7 @@ public class MQTTClient {
                     .serverHost(broker)
                     .serverPort(port)
                     .simpleAuth(simpleAuth)
+                    .willPublish(generateLWT(lwt_topic, lwt_payload))
                     .buildAsync();
         }
 
@@ -133,5 +142,17 @@ public class MQTTClient {
     // When extending the class, use this to have full control over MQTT Setup
     public CompletableFuture<Mqtt5SubAck> subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
         return client.subscribe(subscription, callback);
+    }
+
+    // TODO: Make This More Configurable Without Making More Complex
+    private MqttWillPublish generateLWT(MqttTopicImpl topic, ByteBuffer payload) {
+        MqttUtf8StringImpl contentType = MqttUtf8StringImpl.of("text/plain");
+
+        return new MqttWillPublish(topic, payload, MqttQos.EXACTLY_ONCE,
+                true, MqttPublish.NO_MESSAGE_EXPIRY,
+                Mqtt5PayloadFormatIndicator.UTF_8,
+                contentType, topic,
+                null, MqttUserPropertiesImpl.NO_USER_PROPERTIES,
+                -1);
     }
 }
