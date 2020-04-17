@@ -67,6 +67,7 @@ public class MQTTClient {
                     .builder()
                     .serverHost(broker)
                     .serverPort(port)
+                    .simpleAuth(simpleAuth)
                     .buildAsync();
         }
 

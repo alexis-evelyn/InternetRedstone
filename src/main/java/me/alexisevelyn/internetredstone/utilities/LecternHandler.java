@@ -203,10 +203,10 @@ public class LecternHandler extends LecternTracker {
         }
 
         // Create MQTT Client For Lectern
-        setClient(new MQTTClient(getBroker(), getPort(), getTls()));
+//        setClient(new MQTTClient(getBroker(), getPort(), getTls()));
 
         // Client With Username/Password (TODO: Test if Works With Null Values)
-//        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword()));
+        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword()));
 
         // List of Topics to Subscribe To
         // TODO: Eventually Allow Customizing Topic String In Config
