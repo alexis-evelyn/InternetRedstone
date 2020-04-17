@@ -124,7 +124,7 @@ public class LecternHandler extends LecternTracker {
         }
 
         setTls(config.getBoolean("default.tls", false));
-        setPort(config.getInt("default.tls", 1883));
+        setPort(config.getInt("default.port", 1883));
 
         ResultSet lecternData;
         ResultSet playerData;
