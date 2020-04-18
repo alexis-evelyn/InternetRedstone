@@ -21,11 +21,15 @@ public class LecternHandlers {
     // Main class used to get synchronous execution
     final Main main;
 
+    // Server Translation Language
+    final Translator translator;
+
     // List of Tracker Objects
     final private ConcurrentHashMap<Location, LecternHandler> handlers;
 
     public LecternHandlers(Main main) {
         this.main = main;
+        translator = main.getServerTranslator();
 
         handlers = new ConcurrentHashMap<>();
     }
@@ -36,8 +40,7 @@ public class LecternHandlers {
         try {
             ResultSet lecternsInfo = mySQLClient.retrieveAllRegisteredLecternsIfExists();
 
-            Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD +
-                    "Registering All Lecterns From Database (If Any)...");
+            Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_registering_all"));
 
             UUID player;
             World world;
@@ -57,14 +60,14 @@ public class LecternHandlers {
 
                 registerHandler(lectern, player);
 
-                Logger.finer(ChatColor.GOLD + "" + ChatColor.BOLD +
+                Logger.finer(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
                         "Registered Lectern At: " +
                         Logger.getFormattedLocation(lectern));
 
             }
 
         } catch (SQLException exception) {
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
                     "Failed To Register All Lecterns From Database!!!");
 
             Logger.printException(exception);
@@ -76,7 +79,7 @@ public class LecternHandlers {
         if (handlers.containsKey(location))
             throw new DuplicateObjectException(ChatColor.GOLD + "Tracker, "
                     + Logger.getFormattedLocation(location)
-                    + ChatColor.GOLD + "" + ChatColor.BOLD
+                    + String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
                     + ", already registered in database!!!");
 
         LecternHandler handler = new LecternHandler(main, location, player);
@@ -92,7 +95,7 @@ public class LecternHandlers {
         if (!handlers.containsKey(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
                     + Logger.getFormattedLocation(location)
-                    + ChatColor.GOLD + "" + ChatColor.BOLD
+                    + String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
                     + ", missing from database!!!");
 
         LecternHandler handler = handlers.get(location);

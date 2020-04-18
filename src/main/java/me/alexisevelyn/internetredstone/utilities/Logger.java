@@ -47,7 +47,7 @@ public class Logger {
             message = exception.getClass().getName();
         }
 
-        severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Exception: "
+        severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + "Exception: "
                 + ChatColor.DARK_RED + "" + ChatColor.BOLD + message);
 
         severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
@@ -214,7 +214,7 @@ public class Logger {
     }
 
     public static void rxHandler(Throwable error) {
-        severe(ChatColor.GOLD + "" + ChatColor.BOLD + "Severe Throwable Error (Cannot Recover): "
+        severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + "Severe Throwable Error (Cannot Recover): "
                 + ChatColor.DARK_RED + "" + ChatColor.BOLD + error.getMessage());
 
         severe(ChatColor.RED + "" + ChatColor.BOLD + "---");

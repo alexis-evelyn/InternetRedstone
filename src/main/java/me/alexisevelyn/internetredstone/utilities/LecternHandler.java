@@ -9,9 +9,9 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
-import me.alexisevelyn.internetredstone.utilities.data.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.data.LastWillAndTestamentBuilder;
+import me.alexisevelyn.internetredstone.utilities.data.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import org.apache.commons.lang.StringUtils;
@@ -33,18 +33,23 @@ import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.IllegalFormatException;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public class LecternHandler extends LecternTracker {
-    final MySQLClient mySQLClient;
-    final Hashids hashids;
+    private final MySQLClient mySQLClient;
+    private final Hashids hashids;
+
+    private Translator translator;
 
     public LecternHandler(@NotNull Main main, Location location, UUID player) {
         // This is to be called on player registration
         // Originally the plan was to have 2 constructors, one with the player and one without the player (to be used on startup).
         setPlayer(player);
         setMain(main);
+
+        translator = main.getServerTranslator();
 
         mySQLClient = getMain().getMySQLClient();
 
@@ -68,10 +73,10 @@ public class LecternHandler extends LecternTracker {
                     .thenAccept(read -> getClient().subscribe(topics, callback))
                     .thenAccept(mysql -> addDatabaseEntry());
         } catch (ConnectionFailedException | ConnectionClosedException | Mqtt5ConnAckException exception) {
-            Logger.severe("Failed to connect to MQTT Server!!!");
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("mqtt_failed_connection"));
             Logger.printException(exception);
         } catch (MqttClientStateException exception) {
-            Logger.warning("Already Connected or Connecting!!!");
+            Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("mqtt_already_connecting"));
         }
     }
 
@@ -158,8 +163,8 @@ public class LecternHandler extends LecternTracker {
                 }
             }
         } catch(SQLException exception) {
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
-                    "Failed To Retrieve Lectern Data From Database Due To SQLException!!!");
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
+                    translator.getString("lectern_failed_database_retrieval"));
 
             Logger.printException(exception);
         }
@@ -188,7 +193,7 @@ public class LecternHandler extends LecternTracker {
                     }
                 } catch (SQLException exception) {
                     // Failed to check against database, reverting to uuid method of id generation
-                    Logger.severe("SQLException When Checking Lectern IDS!!!");
+                    Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_check_id_sql_exception"));
                     Logger.printException(exception);
 
                     break;
@@ -242,9 +247,7 @@ public class LecternHandler extends LecternTracker {
                 mySQLClient.storeUserPreferences(null, null, null, getPlayer());
                 mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
             } catch (SQLException exception) {
-                Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                        + "Failed to add database entries in Lectern Tracker!!!");
-
+                Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_add_entries_sql_exception"));
                 Logger.printException(exception);
             }
         });
@@ -258,8 +261,7 @@ public class LecternHandler extends LecternTracker {
 
                 mySQLClient.unregisterLectern(getLocation());
             } catch (SQLException exception) {
-                Logger.severe("Failed to remove database entries in Lectern Tracker!!!");
-
+                Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_remove_entries_sql_exception"));
                 Logger.printException(exception);
             }
 
@@ -271,14 +273,14 @@ public class LecternHandler extends LecternTracker {
     final Consumer<Mqtt5Publish> callback = mqtt5Publish -> {
         String decoded = new String(mqtt5Publish.getPayloadAsBytes(), StandardCharsets.UTF_8);
 
-        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                + "Received Message On Topic: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+        Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                + translator.getString("lectern_received_message")
+                + ChatColor.DARK_PURPLE + ChatColor.BOLD
                 + mqtt5Publish.getTopic().toString());
 
-        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                + "Message: "
-                + ChatColor.AQUA + "" + ChatColor.BOLD
+        Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                + translator.getString("lectern_message")
+                + ChatColor.AQUA + ChatColor.BOLD
                 + decoded
                 + ChatColor.RESET);
 
@@ -286,15 +288,13 @@ public class LecternHandler extends LecternTracker {
         try {
             powerLevel = Integer.parseInt(decoded) - 1;
         } catch (NumberFormatException exception) {
-//            Logger.info(ChatColor.GOLD + "Not A Valid Integer: "
-//                    + ChatColor.DARK_PURPLE + decoded);
             return;
         }
 
         if (0 <= powerLevel && powerLevel <= 14) {
             Bukkit.getScheduler().runTask(getMain(), () -> {
-                Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD + "Setting Redstone Signal To: "
-                        + ChatColor.AQUA + "" + ChatColor.BOLD + (powerLevel + 1));
+                Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_setting_redstone_signal")
+                        + ChatColor.AQUA + ChatColor.BOLD + (powerLevel + 1));
 
                 try {
                     BlockState snapshot = getLocation().getBlock().getState();
@@ -302,10 +302,10 @@ public class LecternHandler extends LecternTracker {
                     if (snapshot instanceof Lectern) {
                         Lectern lectern = (Lectern) snapshot;
 
-                        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                                + "Current Page Is: "
-                                + ChatColor.AQUA + "" + ChatColor.BOLD
-                                + lectern.getPage()
+                        Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                                + translator.getString("lectern_current_page")
+                                + ChatColor.AQUA + ChatColor.BOLD
+                                + lectern.getPage() + 1
                                 + ChatColor.RESET);
 
                         // Update First Page In Book
@@ -316,11 +316,12 @@ public class LecternHandler extends LecternTracker {
                             validateBook(lectern);
                         } catch (InvalidBook exception) {
                             // Just return!!!
-
-                            Logger.warning("Failed to Get Book: " + exception.getMessage());
+                            Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                                    + translator.getString("lectern_failed_retrieve_book")
+                                    + exception.getMessage());
                             return;
                         } catch (NotEnoughPages exception) {
-                            String warning = ChatColor.DARK_RED + "" + ChatColor.BOLD
+                            String warning = String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
                                     + exception.getMessage();
 
                             updateMainPage(lectern, warning);
@@ -333,14 +334,14 @@ public class LecternHandler extends LecternTracker {
                         snapshot.update();
                     }
                 } catch(NullPointerException exception) {
-                    Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                            + "Failed To Set Redstone Signal To Due To NullPointerException With setPage(int): "
-                            + ChatColor.AQUA + "" + ChatColor.BOLD
+                    Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                            + translator.getString("lectern_failed_set_power_level_npe")
+                            + ChatColor.AQUA + ChatColor.BOLD
                             + (powerLevel + 1)
                             + ChatColor.RESET);
 
-                    Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                            + "Update to the latest server software (either Spigot/Paper)!!!");
+                    Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                            + translator.getString("lectern_update_latest_server"));
 
                     Logger.printException(exception);
                 }
@@ -358,20 +359,30 @@ public class LecternHandler extends LecternTracker {
         bookMeta = LecternUtilities.getBookMeta(book);
 
         if (bookMeta.getPageCount() != 15) {
-            throw new NotEnoughPages("You have " + bookMeta.getPageCount() + " pages in your book!!! You need exactly 15!!!");
+            String warning;
+            try {
+                warning = String.format(translator.getString("lectern_not_enough_pages"), bookMeta.getPageCount());
+            } catch (IllegalFormatException ignored) {
+                // This is in case someone forgets to put %s in the translation!!!
+                warning = translator.getString("lectern_not_enough_pages");
+            }
+
+            throw new NotEnoughPages(warning);
         }
     }
 
     public void writeLastMessage(Lectern lectern, Mqtt5Publish mqtt5Publish, Integer powerLevel) {
-        String page = ChatColor.DARK_GREEN + "" + ChatColor.BOLD
-                + "Last Message: "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD
-                + (powerLevel + 1)
-                + "\n"
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
-                + "From Channel: "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD
-                + mqtt5Publish.getTopic().toString();
+        String page = String.valueOf(ChatColor.DARK_GREEN) + ChatColor.BOLD +
+                // last message
+                translator.getString("lectern_last_message") +
+                ChatColor.DARK_RED + ChatColor.BOLD +
+                (powerLevel + 1) + "\n" +
+
+                // from channel
+                ChatColor.DARK_GREEN + ChatColor.BOLD +
+                translator.getString("lectern_from_channel") +
+                ChatColor.DARK_RED + ChatColor.BOLD +
+                mqtt5Publish.getTopic().toString();
 
         updateMainPage(lectern, page);
     }
@@ -386,11 +397,11 @@ public class LecternHandler extends LecternTracker {
         try {
             bookMeta = LecternUtilities.getBookMeta(book);
         } catch (InvalidBook exception) {
-            Logger.warning("LecternTracker: " + exception.getMessage());
+            Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_lectern_handler") + exception.getMessage());
             return;
         }
 
-        bookMeta.setPage(1, ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+        bookMeta.setPage(1, String.valueOf(ChatColor.DARK_PURPLE) + ChatColor.BOLD
                 + LecternUtilities.getIdentifier()
                 + "\n"
                 + page);
@@ -409,8 +420,26 @@ public class LecternHandler extends LecternTracker {
          * or a tracker destroyed message)
          */
 
-        String message = "Cleanup Called!!!";
-        byte[] payload = message.getBytes();
+        byte[] payload;
+        switch (disconnectReason.getReason()) {
+            case BROKEN_LECTERN:
+                payload = translator.getString("lectern_disconnect_broken_lectern").getBytes();
+                break;
+            case OTHER:
+                payload = translator.getString("lectern_disconnect_other").getBytes();
+                break;
+            case REMOVED_BOOK:
+                payload = translator.getString("lectern_disconnect_removed_book").getBytes();
+                break;
+            case SERVER_SHUTDOWN:
+                payload = translator.getString("lectern_disconnect_server_shutdown").getBytes();
+                break;
+            case UNSPECIFIED:
+                payload = translator.getString("lectern_disconnect_unspecified").getBytes();
+                break;
+            default:
+                payload = translator.getString("lectern_disconnect_uncaught").getBytes();
+        }
 
         // Send Message To Topic With UUID
         getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);

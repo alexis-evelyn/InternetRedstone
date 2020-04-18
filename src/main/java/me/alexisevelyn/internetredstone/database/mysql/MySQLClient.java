@@ -3,6 +3,7 @@ package me.alexisevelyn.internetredstone.database.mysql;
 import com.axiomalaska.jdbc.NamedParameterPreparedStatement;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.Translator;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,16 +21,21 @@ import java.util.UUID;
 public class MySQLClient {
     Connection connection;
 
+    final Translator translator;
+
     public MySQLClient(Main main) {
         FileConfiguration config = main.getConfiguration().getConfig();
+
+        translator = main.getServerTranslator();
 
         String url = config.getString("mysql.url");
         String user = config.getString("mysql.username");
         String password = config.getString("mysql.password");
 
         if (StringUtils.isBlank(url) || StringUtils.isBlank(user) || StringUtils.isBlank(password) ) {
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.DARK_PURPLE +
-                    "Cannot Continue Without MySQL URL/Username/and Password!!! Shutting Down!!!");
+            Logger.severe(String.valueOf(ChatColor.GOLD) +
+                    ChatColor.DARK_PURPLE +
+                    translator.getString("mysql_failed_missing_essentials"));
 
             // Disable Our Own Plugin Since Data is Missing From Config!!!
             Bukkit.getPluginManager().disablePlugin(main);
@@ -49,15 +55,15 @@ public class MySQLClient {
             ResultSet resultSet = statement.executeQuery(query);
 
             if (resultSet.next()) {
-                Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
-                        + "MySQL Version: "
-                        + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                        + translator.getString("mysql_version")
+                        + ChatColor.DARK_PURPLE + ChatColor.BOLD
                         + resultSet.getString(1));
             }
         } catch (SQLException exception) {
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                            + "SQL State: "
-                            + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                            + translator.getString("mysql_state")
+                            + ChatColor.DARK_PURPLE + ChatColor.BOLD
                             + exception.getSQLState());
 
             Logger.printException(exception);
@@ -69,14 +75,14 @@ public class MySQLClient {
             // This should never run as long as the MySQL package is not shaded!!!
 
             // Connector/J - https://dev.mysql.com/downloads/connector/j/
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Could Not Find JDBC Driver 'com.mysql.jdbc.Driver': "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("mysql_no_find_jdbc_driver")
+                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
                     + exception.getMessage());
 
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Do you not have Connector/J installed? Download it at: "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("mysql_connector_j_installed")
+                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
                     + "https://dev.mysql.com/downloads/connector/j/");
 
             Logger.printException(exception);
@@ -94,9 +100,9 @@ public class MySQLClient {
         try {
             connection.close();
         } catch (SQLException exception) {
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Closing Connection SQL State: "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("mysql_disconnect_exception")
+                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
                     + exception.getSQLState());
 
             Logger.printException(exception);
@@ -110,13 +116,13 @@ public class MySQLClient {
             Integer playersTable = createPlayersTable();
             Integer lecternsTable = createLecternsTable();
 
-            Logger.finest("MySQL Result For Player Table Creation: " + playersTable);
-            Logger.finest("MySQL Result For Lectern Table Creation: " + lecternsTable);
+            Logger.finest(translator.getString("mysql_log_player_table_creation") + playersTable);
+            Logger.finest(translator.getString("mysql_log_lectern_table_creation") + lecternsTable);
 
         } catch (SQLException exception) {
-            Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Tables Creation SQL State: "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("mysql_create_tables_exception")
+                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
                     + exception.getSQLState());
 
             Logger.printException(exception);

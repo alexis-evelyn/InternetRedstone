@@ -2,12 +2,10 @@ package me.alexisevelyn.internetredstone.settings;
 
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.utilities.Logger;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.hashids.Hashids;
 
 import java.security.SecureRandom;
-import java.util.Objects;
 import java.util.UUID;
 
 public class Configuration {
@@ -31,6 +29,11 @@ public class Configuration {
         config.addDefault("debug", false);
         config.addDefault("logger.print.color", true);
         config.addDefault("version", "0.0.1");
+
+        // Server Wide Settings
+        config.addDefault("server.language", "en");
+        config.addDefault("server.country", "");
+        config.addDefault("server.variant", "");
 
         // Currently port and tls is not used
         config.addDefault("default.broker", "broker.hivemq.com");
@@ -56,12 +59,10 @@ public class Configuration {
         // Max Integer To Try To Use For Short ID Generation
         config.addDefault("lectern.max-short-id", 10000);
 
+        // Retrieve Hash ID Or Generate A New One On Failure
         try {
-            hashids = new Hashids(Objects.requireNonNull(config.get("lectern.id-hash")).toString());
+            hashids = new Hashids(config.getString("lectern.id-hash"));
         } catch (NullPointerException exception) {
-            Logger.warning(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Couldn't Retrieve id-hash from config, generating a random hash salt!!!");
-
             hashids = new Hashids(UUID.randomUUID().toString());
         }
 

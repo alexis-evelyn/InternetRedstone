@@ -1,21 +1,31 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft.commands;
 
 import lombok.Data;
+import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.utilities.LecternHandler;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.Translator;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 public class Lecterns implements CommandExecutor {
-    final LecternHandlers handlers;
+    private final LecternHandlers handlers;
+    private final Main main;
+
+    public Lecterns(LecternHandlers handlers, Main main) {
+        this.handlers = handlers;
+        this.main = main;
+    }
 
     /**
      * Executes the given command, returning its success.
@@ -37,20 +47,28 @@ public class Lecterns implements CommandExecutor {
     }
 
     public void listTrackers(CommandSender sender) {
+        Translator translator;
+
+        if (sender instanceof Player) {
+            translator = new Translator(((Player) sender).getLocale());
+        } else {
+            translator = main.getServerTranslator();
+        }
+
         ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
 
         if (trackerMap.size() == 0) {
-            sender.sendMessage(ChatColor.GOLD + "No Registered Lecterns!!!");
+            sender.sendMessage(ChatColor.GOLD + translator.getString("command_lecterns_no_registered_lecterns"));
         }
 
         for (Location location : trackerMap.keySet()) {
-            sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Lectern: "
-                    + ChatColor.DARK_GREEN + "" + ChatColor.BOLD
+            sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("command_lecterns_lectern")
+                    + ChatColor.DARK_GREEN + ChatColor.BOLD
                     + location.getWorld().getName() + " "
                     + Logger.getFormattedLocation(location)
 
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
                     + " - "
                     + trackerMap.get(location).getLecternID());
         }

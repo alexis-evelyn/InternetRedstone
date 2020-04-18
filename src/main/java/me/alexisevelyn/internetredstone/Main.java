@@ -10,6 +10,7 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Lecterns;
 import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.Translator;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
@@ -24,17 +25,23 @@ public class Main extends JavaPlugin {
 
     private Configuration config;
     private MySQLClient client;
+    private Translator translator;
 
     @Override
     public void onEnable() {
         // Setup and Load Config
         config = new Configuration(this);
 
+        // Setup Server Translator
+        translator = new Translator(config.getConfig().getString("server.language", "en"),
+                config.getConfig().getString("server.country", ""),
+                config.getConfig().getString("server.variant", ""));
+
         // Register MySQL Client
         client = new MySQLClient(this);
 
         // Register bStats
-        Logger.info(ChatColor.GOLD + "" + ChatColor.BOLD
+        Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
                 + "bStats Enabled: "
                 + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
                 + registerStats());
@@ -57,10 +64,10 @@ public class Main extends JavaPlugin {
         // Register Bukkit Commands
         try {
             PluginCommand lecterns = getCommand("lecterns");
-            Objects.requireNonNull(lecterns).setExecutor(new Lecterns(handlers));
+            Objects.requireNonNull(lecterns).setExecutor(new Lecterns(handlers, this));
 
             PluginCommand internetredstone = getCommand("internetredstone");
-            Objects.requireNonNull(internetredstone).setExecutor(new Lecterns(handlers));
+            Objects.requireNonNull(internetredstone).setExecutor(new Lecterns(handlers, this));
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }
@@ -118,4 +125,6 @@ public class Main extends JavaPlugin {
     public Configuration getConfiguration() {
         return config;
     }
+
+    public Translator getServerTranslator() { return translator; }
 }

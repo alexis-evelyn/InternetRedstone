@@ -16,9 +16,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import lombok.Data;
-import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.data.LastWillAndTestamentBuilder;
-import org.bukkit.ChatColor;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -105,7 +103,8 @@ public class MQTTClient {
     }
 
     // Simple method to subscribe to topics with default settings
-    public void subscribe(ArrayList<String> topic_strings, Consumer<Mqtt5Publish> callback) {
+    @SuppressWarnings("UnusedReturnValue")
+    public CompletableFuture<Mqtt5SubAck> subscribe(ArrayList<String> topic_strings, Consumer<Mqtt5Publish> callback) {
         // This is designed to keep the Constructor Clean
         MqttQos qos = MqttQos.AT_MOST_ONCE; // How Hard The Server Should Try To Send Us A Message
         boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
@@ -116,12 +115,6 @@ public class MQTTClient {
 
         ArrayList<MqttSubscription> subscriptionsList = new ArrayList<>();
         for (String topic_string : topic_strings) {
-            Logger.finer(ChatColor.GOLD + "" + ChatColor.BOLD
-                    + "Topics to Subscribe: "
-                    + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
-                    + topic_string);
-
-            //noinspection ConstantConditions
             subscriptionsList.add(new MqttSubscription(MqttTopicFilterImpl.of(topic_string), qos, noLocal, retainHandling, retainAsPublished));
         }
 
@@ -130,13 +123,7 @@ public class MQTTClient {
         MqttUserPropertiesImpl properties = MqttUserPropertiesImpl.NO_USER_PROPERTIES; // User properties are client defined custom pieces of data. They will be forwarded to the receivers of any messages.
         MqttSubscribe subscription = new MqttSubscribe(subscriptions, properties); // MQTT Subscribe Class - Just Put's Data Together
 
-        // I'm suppressing the single line lambda warning as I'm going to eventually add in more logger lines
-        // TODO: Add more logger lines to help with debugging in the future. Also figure out how to determine if connected or not!!!
-        //noinspection CodeBlock2Expr
-        subscribe(subscription, callback).thenAcceptAsync(mqtt5SubAck -> {
-            Logger.finer("Subscribed Reason (Debug): "
-                    + mqtt5SubAck.getReasonString());
-        });
+        return subscribe(subscription, callback);
     }
 
     // Ultimately Called Subscribe Function
