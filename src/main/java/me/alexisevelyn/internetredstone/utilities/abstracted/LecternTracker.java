@@ -1,6 +1,5 @@
 package me.alexisevelyn.internetredstone.utilities.abstracted;
 
-import com.hivemq.client.internal.mqtt.message.publish.MqttWillPublish;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;

@@ -34,6 +34,7 @@ public class MQTTClient {
     final CompletableFuture<Mqtt5ConnAck> connection;
 
     // TODO: Combine lwt stuff into one class to pass in as a single argument instead of passing in multiple arguments!!!
+    @SuppressWarnings("unused")
     public MQTTClient(String broker, Integer port, Boolean tls, MqttTopicImpl lwt_topic, ByteBuffer lwt_payload) {
         if (tls) {
             client = Mqtt5Client

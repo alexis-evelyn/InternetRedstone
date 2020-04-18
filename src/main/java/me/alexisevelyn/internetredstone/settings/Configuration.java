@@ -14,7 +14,7 @@ public class Configuration {
     final Main main;
     FileConfiguration config;
     Hashids hashids;
-    SecureRandom random = new SecureRandom();
+    final SecureRandom random = new SecureRandom();
 
     public Configuration(Main main) {
         this.main = main;

@@ -1,18 +1,11 @@
 package me.alexisevelyn.internetredstone.utilities;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
-import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertiesImpl;
-import com.hivemq.client.internal.mqtt.datatypes.MqttUtf8StringImpl;
-import com.hivemq.client.internal.mqtt.message.publish.MqttPublish;
-import com.hivemq.client.internal.mqtt.message.publish.MqttWillPublish;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.datatypes.MqttTopic;
 import com.hivemq.client.mqtt.exceptions.ConnectionClosedException;
 import com.hivemq.client.mqtt.exceptions.ConnectionFailedException;
 import com.hivemq.client.mqtt.exceptions.MqttClientStateException;
-import com.hivemq.client.mqtt.mqtt5.datatypes.Mqtt5UserProperties;
 import com.hivemq.client.mqtt.mqtt5.exceptions.Mqtt5ConnAckException;
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
@@ -44,8 +37,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class LecternHandler extends LecternTracker {
-    MySQLClient mySQLClient;
-    Hashids hashids;
+    final MySQLClient mySQLClient;
+    final Hashids hashids;
 
     public LecternHandler(@NotNull Main main, Location location, UUID player) {
         // This is to be called on player registration

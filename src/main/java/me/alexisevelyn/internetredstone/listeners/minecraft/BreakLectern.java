@@ -2,8 +2,6 @@ package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
-import me.alexisevelyn.internetredstone.utilities.Logger;
-import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
