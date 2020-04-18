@@ -10,6 +10,7 @@ import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Lecterns;
 import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
@@ -73,7 +74,7 @@ public class Main extends JavaPlugin {
         // Plugin shutdown logic
 
         // Close MQTT Connections Properly (So, players can get notified on server shutdown/etc...)
-        handlers.cleanup();
+        handlers.cleanup(new DisconnectReason(DisconnectReason.Reason.SERVER_SHUTDOWN));
         handlers = null;
 
         // Close MySQL Connection

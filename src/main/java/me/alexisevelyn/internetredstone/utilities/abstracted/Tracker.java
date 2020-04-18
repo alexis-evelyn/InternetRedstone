@@ -2,6 +2,7 @@ package me.alexisevelyn.internetredstone.utilities.abstracted;
 
 import lombok.Data;
 import me.alexisevelyn.internetredstone.Main;
+import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import org.bukkit.Location;
 
 import java.util.UUID;
@@ -25,5 +26,5 @@ public abstract class Tracker {
     }
 
     // Expected of All Trackers
-    public abstract void cleanup();
+    public abstract void cleanup(DisconnectReason disconnectReason);
 }

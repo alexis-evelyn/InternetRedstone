@@ -2,6 +2,7 @@ package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,7 +19,11 @@ public class TakeBook implements Listener {
         // Unregister Lectern With Plugin if Registered
         Location location = event.getLectern().getLocation();
 
-        if (handlers.isRegistered(location))
-            handlers.unregisterHandler(location);
+        if (handlers.isRegistered(location)) {
+            DisconnectReason disconnectReason = new DisconnectReason(DisconnectReason.Reason.REMOVED_BOOK);
+            disconnectReason.setPlayer(event.getPlayer().getUniqueId());
+
+            handlers.unregisterHandler(location, disconnectReason);
+        }
     }
 }

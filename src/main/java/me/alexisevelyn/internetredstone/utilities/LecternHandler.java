@@ -11,6 +11,7 @@ import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.LecternTracker;
+import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import org.apache.commons.lang.StringUtils;
@@ -255,7 +256,7 @@ public class LecternHandler extends LecternTracker {
         });
     }
 
-    public void unregister() {
+    public void unregister(DisconnectReason disconnectReason) {
         Bukkit.getScheduler().runTask(getMain(), () -> {
             try {
                 // Update Number of Registered Lecterns
@@ -268,7 +269,7 @@ public class LecternHandler extends LecternTracker {
                 Logger.printException(exception);
             }
 
-            cleanup();
+            cleanup(disconnectReason);
         });
     }
 
@@ -405,7 +406,7 @@ public class LecternHandler extends LecternTracker {
     }
 
     @Override
-    public void cleanup() {
+    public void cleanup(DisconnectReason disconnectReason) {
         /*
          * Disconnect MQTT Client Properly
          *

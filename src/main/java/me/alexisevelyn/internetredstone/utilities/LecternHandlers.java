@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
+import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
 import org.bukkit.Bukkit;
@@ -82,8 +83,12 @@ public class LecternHandlers {
         handlers.put(location, handler);
     }
 
-    @SneakyThrows
     public void unregisterHandler(Location location) {
+        unregisterHandler(location, new DisconnectReason(DisconnectReason.Reason.UNSPECIFIED));
+    }
+
+    @SneakyThrows
+    public void unregisterHandler(Location location, DisconnectReason reason) {
         if (!handlers.containsKey(location))
             throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
                     + Logger.getFormattedLocation(location)
@@ -91,7 +96,7 @@ public class LecternHandlers {
                     + ", missing from database!!!");
 
         LecternHandler handler = handlers.get(location);
-        handler.unregister();
+        handler.unregister(reason);
 
         handlers.remove(location);
     }
@@ -114,10 +119,10 @@ public class LecternHandlers {
         return handlers;
     }
 
-    public void cleanup() {
+    public void cleanup(DisconnectReason disconnectReason) {
         for (Tracker tracker : handlers.values()) {
             // Tell tracker to perform cleanup duties (e.g. finish sending data/saving/etc...)
-            tracker.cleanup();
+            tracker.cleanup(disconnectReason);
 
             // Mark tracker as eligible for garbage collection
             //noinspection UnusedAssignment
