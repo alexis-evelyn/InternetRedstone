@@ -58,7 +58,8 @@ public class Lecterns implements CommandExecutor {
         ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
 
         if (trackerMap.size() == 0) {
-            sender.sendMessage(ChatColor.GOLD + translator.getString("command_lecterns_no_registered_lecterns"));
+            sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("command_lecterns_no_registered_lecterns"));
         }
 
         for (Location location : trackerMap.keySet()) {

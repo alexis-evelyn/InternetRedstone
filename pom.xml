@@ -6,7 +6,7 @@
 
     <groupId>me.alexisevelyn</groupId>
     <artifactId>internetredstone</artifactId>
-    <version>0.0.24-SNAPSHOT</version>
+    <version>0.0.25-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Internet Redstone</name>
