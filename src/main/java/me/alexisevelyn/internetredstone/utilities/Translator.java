@@ -4,20 +4,41 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public class Translator extends ResourceBundle {
     private ResourceBundle translation;
+    private ResourceBundle fallback;
+    final private String baseName = "translations/MessagesBundle";
 
     public Translator(String parse) {
         // TODO: Write code to attempt to parse locale from player
         //  https://papermc.io/javadocs/paper/1.15/org/bukkit/entity/Player.html#getLocale--
 
-        translation = ResourceBundle.getBundle("MessagesBundle",  new Locale("en"));
+        Locale locale = new Locale("en");
+        try {
+            translation = ResourceBundle.getBundle(baseName, locale);
+            fallback = ResourceBundle.getBundle(baseName, new Locale("en"));
+        } catch (MissingResourceException exception) {
+            translation = ResourceBundle.getBundle(baseName, new Locale("en"));
+
+            Logger.severe("Locale, " + locale + " not found, defaulting to English (en)!!!");
+            Logger.printException(exception);
+        }
     }
 
     public Translator(String language, String country, String variant) {
-        translation = ResourceBundle.getBundle("MessagesBundle",  new Locale(language, country, variant));
+        Locale locale = new Locale(language, country, variant);
+        try {
+            translation = ResourceBundle.getBundle(baseName, locale);
+            fallback = ResourceBundle.getBundle(baseName, new Locale("en"));
+        } catch (MissingResourceException exception) {
+            translation = ResourceBundle.getBundle(baseName, new Locale("en"));
+
+            Logger.severe("Locale, " + locale + " not found, defaulting to English (en)!!!");
+            Logger.printException(exception);
+        }
     }
 
     /**
@@ -31,6 +52,11 @@ public class Translator extends ResourceBundle {
      */
     @Override
     protected Object handleGetObject(@NotNull String key) {
+        // If translation is missing from the locale, fallback to English (en)
+        if (!translation.containsKey(key)) {
+            return fallback.getObject(key);
+        }
+
         return translation.getObject(key);
     }
 
