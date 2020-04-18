@@ -384,7 +384,7 @@ public class MySQLClient {
         if (!isPlayerInDatabase(player))
             return null;
 
-        String query = "SELECT broker, username, password, numberOfLecternsRegistered FROM Players" +
+        String query = "SELECT broker, port, tls, username, password, numberOfLecternsRegistered FROM Players" +
                 " WHERE `uuid` = :uuid LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
