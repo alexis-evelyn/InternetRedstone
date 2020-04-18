@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.*;
+import java.util.Locale;
 import java.util.UUID;
 
 /* Question
@@ -140,6 +141,7 @@ public class MySQLClient {
                 `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.',
                 `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.',
                 `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\'s uuid to help associate player preferences with player objects.',
+                `locale` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used for text translations.',
                 `numberOfLecternsRegistered` INT NOT NULL DEFAULT '0' COMMENT 'Used for player statistics. Tracks the number of registered lecterns a player owns.',
                 PRIMARY KEY (`entry`)
             );
@@ -153,6 +155,7 @@ public class MySQLClient {
                 " `username` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user username settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
                 " `password` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used to store custom user password settings if defined. If null, default to server broker! Also, is required if using custom broker.'," +
                 " `uuid` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Used to store player\\'s uuid to help associate player preferences with player objects.'," +
+                " `locale` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Used for text translations.'," +
                 " `numberOfLecternsRegistered` INT NOT NULL DEFAULT '0' COMMENT 'Used for player statistics. Tracks the number of registered lecterns a player owns.'," +
                 " PRIMARY KEY (`entry`));";
 
@@ -274,7 +277,7 @@ public class MySQLClient {
         preparedStatement.executeUpdate();
     }
 
-    public void storeUserPreferences(String broker, String username, String password, UUID player) throws SQLException {
+    public void storeUserPreferences(String broker, String username, String password, UUID player, Locale locale) throws SQLException {
         /* Info Needed
          *
          * Broker or null if using default
@@ -295,8 +298,8 @@ public class MySQLClient {
         // UUID player, Location lectern, String lecternID, Integer lastKnownRedstoneSignal
 
         String query = "INSERT INTO Players" +
-                " (broker, username, password, uuid) VALUES" +
-                " (:broker, :username, :password, :uuid)";
+                " (broker, username, password, uuid, locale) VALUES" +
+                " (:broker, :username, :password, :uuid, :locale)";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
                 .createNamedParameterPreparedStatement(connection, query);
@@ -307,6 +310,8 @@ public class MySQLClient {
         preparedStatement.setString("password", password);
 
         preparedStatement.setString("uuid", player.toString());
+
+        preparedStatement.setString("locale", locale.toLanguageTag());
 
         preparedStatement.executeUpdate();
     }
@@ -384,7 +389,7 @@ public class MySQLClient {
         if (!isPlayerInDatabase(player))
             return null;
 
-        String query = "SELECT broker, port, tls, username, password, numberOfLecternsRegistered FROM Players" +
+        String query = "SELECT broker, port, tls, username, password, numberOfLecternsRegistered, locale FROM Players" +
                 " WHERE `uuid` = :uuid LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
@@ -417,5 +422,13 @@ public class MySQLClient {
 
         // If result is 1, then lectern is already registered, otherwise, if 0, it's not
         return doesExist.next() && doesExist.getInt(1) == 1;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public Boolean updateLocale(UUID player, String locale) throws SQLException {
+        if (!isPlayerInDatabase(player))
+            return false;
+
+        return true;
     }
 }

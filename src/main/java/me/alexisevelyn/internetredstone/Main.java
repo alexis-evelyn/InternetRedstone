@@ -2,10 +2,7 @@ package me.alexisevelyn.internetredstone;
 
 import io.reactivex.plugins.RxJavaPlugins;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
-import me.alexisevelyn.internetredstone.listeners.minecraft.BreakLectern;
-import me.alexisevelyn.internetredstone.listeners.minecraft.InteractWithLectern;
-import me.alexisevelyn.internetredstone.listeners.minecraft.RedstoneUpdate;
-import me.alexisevelyn.internetredstone.listeners.minecraft.TakeBook;
+import me.alexisevelyn.internetredstone.listeners.minecraft.*;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Lecterns;
 import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
@@ -60,6 +57,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InteractWithLectern(handlers), this);
         getServer().getPluginManager().registerEvents(new TakeBook(handlers), this);
         getServer().getPluginManager().registerEvents(new BreakLectern(handlers), this);
+        getServer().getPluginManager().registerEvents(new LocaleChanged(client, translator), this);
 
         // Register Bukkit Commands
         try {
