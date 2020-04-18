@@ -1,4 +1,4 @@
-package me.alexisevelyn.internetredstone.utilities.abstracted;
+package me.alexisevelyn.internetredstone.utilities.data;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

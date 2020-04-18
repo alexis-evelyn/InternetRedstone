@@ -1,8 +1,7 @@
-package me.alexisevelyn.internetredstone.utilities.abstracted;
+package me.alexisevelyn.internetredstone.utilities.data;
 
 import lombok.Data;
 import me.alexisevelyn.internetredstone.Main;
-import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import org.bukkit.Location;
 
 import java.util.UUID;

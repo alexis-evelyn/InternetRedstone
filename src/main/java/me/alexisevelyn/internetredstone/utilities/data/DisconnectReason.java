@@ -16,9 +16,10 @@ public class DisconnectReason {
 
     public enum Reason {
         BROKEN_LECTERN,
+        OTHER,
         REMOVED_BOOK,
         SERVER_SHUTDOWN,
-        OTHER,
         UNSPECIFIED
+
     }
 }

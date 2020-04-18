@@ -9,7 +9,7 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
-import me.alexisevelyn.internetredstone.utilities.abstracted.LecternTracker;
+import me.alexisevelyn.internetredstone.utilities.data.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.data.LastWillAndTestamentBuilder;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;

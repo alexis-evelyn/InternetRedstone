@@ -3,7 +3,7 @@ package me.alexisevelyn.internetredstone.utilities;
 import lombok.SneakyThrows;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
-import me.alexisevelyn.internetredstone.utilities.abstracted.Tracker;
+import me.alexisevelyn.internetredstone.utilities.data.Tracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
 import me.alexisevelyn.internetredstone.utilities.exceptions.MissingObjectException;
