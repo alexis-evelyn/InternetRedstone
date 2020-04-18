@@ -12,19 +12,20 @@ public class Translator extends ResourceBundle {
     private ResourceBundle fallback;
     final private String baseName = "translations/MessagesBundle";
 
-    public Translator(String parse) {
-        // TODO: Write code to attempt to parse locale from player
+    public Translator(@NotNull  String parse) {
         //  https://papermc.io/javadocs/paper/1.15/org/bukkit/entity/Player.html#getLocale--
+        //  https://www.spigotmc.org/threads/getting-client-language.103710/#post-1126571
 
-        Locale locale = new Locale("en");
+        // Parse Locale Out of String (Only Throws NPE)
+        Locale locale = Locale.forLanguageTag(parse);
+
         try {
             translation = ResourceBundle.getBundle(baseName, locale);
             fallback = ResourceBundle.getBundle(baseName, new Locale("en"));
         } catch (MissingResourceException exception) {
             translation = ResourceBundle.getBundle(baseName, new Locale("en"));
 
-            Logger.severe("Locale, " + locale + " not found, defaulting to English (en)!!!");
-            Logger.printException(exception);
+            Logger.info("Player's Locale, " + locale + " not found, defaulting to English (en)!!!");
         }
     }
 

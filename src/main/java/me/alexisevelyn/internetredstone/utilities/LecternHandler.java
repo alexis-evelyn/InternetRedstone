@@ -447,11 +447,11 @@ public class LecternHandler extends LecternTracker {
         }
 
         // Send Message To Topic With UUID
-        getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE);
+        getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
 
         // Send Message To Topic With IGM - Topic may be null here
         if (getTopic_ign() != null) {
-            getClient().sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE);
+            getClient().sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
         }
 
         getClient().disconnect();
