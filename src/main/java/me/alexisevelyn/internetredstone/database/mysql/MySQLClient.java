@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import javax.annotation.Nullable;
 import java.sql.*;
 import java.util.Locale;
 import java.util.UUID;
@@ -277,7 +278,7 @@ public class MySQLClient {
         preparedStatement.executeUpdate();
     }
 
-    public void storeUserPreferences(String broker, String username, String password, UUID player, Locale locale) throws SQLException {
+    public void storeUserPreferences(String broker, String username, String password, UUID player, @Nullable String locale) throws SQLException {
         /* Info Needed
          *
          * Broker or null if using default
@@ -311,7 +312,7 @@ public class MySQLClient {
 
         preparedStatement.setString("uuid", player.toString());
 
-        preparedStatement.setString("locale", locale.toLanguageTag());
+        preparedStatement.setString("locale", locale);
 
         preparedStatement.executeUpdate();
     }
@@ -429,6 +430,19 @@ public class MySQLClient {
         if (!isPlayerInDatabase(player))
             return false;
 
-        return true;
+        String query = "UPDATE Players"
+                + " (locale) VALUES"
+                + " (:locale)"
+                + " WHERE `uuid` = :uuid LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+        preparedStatement.setString("locale", locale);
+
+        ResultSet updateLocale = preparedStatement.executeQuery();
+
+        return updateLocale.next();
     }
 }

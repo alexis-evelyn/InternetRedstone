@@ -58,6 +58,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TakeBook(handlers), this);
         getServer().getPluginManager().registerEvents(new BreakLectern(handlers), this);
         getServer().getPluginManager().registerEvents(new LocaleChanged(client, translator), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoined(client, translator), this);
 
         // Register Bukkit Commands
         try {

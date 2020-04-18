@@ -22,6 +22,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
@@ -244,7 +245,14 @@ public class LecternHandler extends LecternTracker {
                 // Broker is set to null as user can set broker via commands. Same for username and password.
                 // The player data won't be overwritten by setting it again. The same goes for the lectern.
                 // Also, we are going to use the default settings provided by the server owner if it's null in the database.
-                mySQLClient.storeUserPreferences(null, null, null, getPlayer());
+                Player player = Bukkit.getPlayer(getPlayer());
+
+                // If Player object is null (e.g. player is offline), then set Locale to null, otherwise set the player's locale
+                if (player != null)
+                    mySQLClient.storeUserPreferences(null, null, null, getPlayer(), player.getLocale());
+                else
+                    mySQLClient.storeUserPreferences(null, null, null, getPlayer(), null);
+
                 mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
             } catch (SQLException exception) {
                 Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_add_entries_sql_exception"));
