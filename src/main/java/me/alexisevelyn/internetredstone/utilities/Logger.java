@@ -48,17 +48,17 @@ public class Logger {
         }
 
         severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + "Exception: "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD + message);
+                + ChatColor.DARK_RED + ChatColor.BOLD + message);
 
-        severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
+        severe(String.valueOf(ChatColor.RED) + ChatColor.BOLD + "---");
 
         for (StackTraceElement line : exception.getStackTrace()) {
-            severe(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + line.getLineNumber()
-                    + ChatColor.RED + "" + ChatColor.BOLD + " - "
-                    + ChatColor.DARK_RED + "" + ChatColor.BOLD + line.toString());
+            severe(String.valueOf(ChatColor.DARK_GREEN) + ChatColor.BOLD + line.getLineNumber()
+                    + ChatColor.RED + ChatColor.BOLD + " - "
+                    + ChatColor.DARK_RED + ChatColor.BOLD + line.toString());
         }
 
-        severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
+        severe(String.valueOf(ChatColor.RED) + ChatColor.BOLD + "---");
     }
 
     public static void info(String message) {
@@ -201,30 +201,30 @@ public class Logger {
 
     // Convenience Method To Help With Printing Formatted Location
     public static String getFormattedLocation(Location location) {
-        return ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "("
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+        return String.valueOf(ChatColor.DARK_GREEN) + ChatColor.BOLD + "("
+                + ChatColor.DARK_PURPLE + ChatColor.BOLD
                 + location.getBlockX()
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + ChatColor.DARK_GREEN + ChatColor.BOLD + ", "
+                + ChatColor.DARK_PURPLE + ChatColor.BOLD
                 + location.getBlockY()
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ", "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + ChatColor.DARK_GREEN + ChatColor.BOLD + ", "
+                + ChatColor.DARK_PURPLE + ChatColor.BOLD
                 + location.getBlockZ()
-                + ChatColor.DARK_GREEN + "" + ChatColor.BOLD + ")";
+                + ChatColor.DARK_GREEN + ChatColor.BOLD + ")";
     }
 
     public static void rxHandler(Throwable error) {
         severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + "Severe Throwable Error (Cannot Recover): "
-                + ChatColor.DARK_RED + "" + ChatColor.BOLD + error.getMessage());
+                + ChatColor.DARK_RED + ChatColor.BOLD + error.getMessage());
 
-        severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
+        severe(String.valueOf(ChatColor.RED) + ChatColor.BOLD + "---");
 
         for (StackTraceElement line : error.getStackTrace()) {
-            severe(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + line.getLineNumber()
-                    + ChatColor.RED + "" + ChatColor.BOLD + " - "
-                    + ChatColor.DARK_RED + "" + ChatColor.BOLD + line.toString());
+            severe(String.valueOf(ChatColor.DARK_GREEN) + ChatColor.BOLD + line.getLineNumber()
+                    + ChatColor.RED + ChatColor.BOLD + " - "
+                    + ChatColor.DARK_RED + ChatColor.BOLD + line.toString());
         }
 
-        severe(ChatColor.RED + "" + ChatColor.BOLD + "---");
+        severe(String.valueOf(ChatColor.RED) + ChatColor.BOLD + "---");
     }
 }

@@ -14,6 +14,7 @@ import org.bukkit.World;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.IllegalFormatException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,7 +41,7 @@ public class LecternHandlers {
         try {
             ResultSet lecternsInfo = mySQLClient.retrieveAllRegisteredLecternsIfExists();
 
-            Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_registering_all"));
+            Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_startup_registering_all"));
 
             UUID player;
             World world;
@@ -60,27 +61,32 @@ public class LecternHandlers {
 
                 registerHandler(lectern, player);
 
-                Logger.finer(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
-                        "Registered Lectern At: " +
-                        Logger.getFormattedLocation(lectern));
+                Logger.finer(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                        + translator.getString("lectern_startup_register")
+                        + Logger.getFormattedLocation(lectern));
 
             }
 
         } catch (SQLException exception) {
-            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
-                    "Failed To Register All Lecterns From Database!!!");
-
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_startup_failed_register_all"));
             Logger.printException(exception);
         }
     }
 
     @SneakyThrows
     public void registerHandler(Location location, UUID player) {
-        if (handlers.containsKey(location))
-            throw new DuplicateObjectException(ChatColor.GOLD + "Tracker, "
-                    + Logger.getFormattedLocation(location)
-                    + String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
-                    + ", already registered in database!!!");
+        if (handlers.containsKey(location)) {
+            String warning;
+            try {
+                warning = String.format(translator.getString("lectern_already_registered_warning"),
+                        Logger.getFormattedLocation(location) + ChatColor.GOLD + ChatColor.BOLD);
+            } catch (IllegalFormatException ignored) {
+                // This is in case someone forgets to put %s in the translation!!!
+                warning = translator.getString("lectern_already_registered_warning");
+            }
+
+            throw new DuplicateObjectException(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + warning);
+        }
 
         LecternHandler handler = new LecternHandler(main, location, player);
         handlers.put(location, handler);
@@ -92,11 +98,18 @@ public class LecternHandlers {
 
     @SneakyThrows
     public void unregisterHandler(Location location, DisconnectReason reason) {
-        if (!handlers.containsKey(location))
-            throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
-                    + Logger.getFormattedLocation(location)
-                    + String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
-                    + ", missing from database!!!");
+        if (!handlers.containsKey(location)) {
+            String warning;
+            try {
+                warning = String.format(translator.getString("lectern_missing_warning"),
+                        Logger.getFormattedLocation(location) + ChatColor.GOLD + ChatColor.BOLD);
+            } catch (IllegalFormatException ignored) {
+                // This is in case someone forgets to put %s in the translation!!!
+                warning = translator.getString("lectern_missing_warning");
+            }
+
+            throw new MissingObjectException(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + warning);
+        }
 
         LecternHandler handler = handlers.get(location);
         handler.unregister(reason);
@@ -110,10 +123,19 @@ public class LecternHandlers {
 
     @lombok.SneakyThrows
     public LecternHandler getHandler(Location location) {
-        if (!isRegistered(location))
-            throw new MissingObjectException(ChatColor.GOLD + "Tracker, "
-                    + Logger.getFormattedLocation(location)
-                    + ChatColor.GOLD + ", missing from database!!!");
+        if (!isRegistered(location)) {
+            String warning;
+            try {
+                warning = String.format(translator.getString("lectern_missing_warning"),
+                        Logger.getFormattedLocation(location) + ChatColor.GOLD + ChatColor.BOLD);
+            } catch (IllegalFormatException ignored) {
+                // This is in case someone forgets to put %s in the translation!!!
+                warning = translator.getString("lectern_missing_warning");
+            }
+
+            throw new MissingObjectException(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + warning);
+        }
+
 
         return handlers.get(location);
     }

@@ -42,8 +42,8 @@ public class Main extends JavaPlugin {
 
         // Register bStats
         Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
-                + "bStats Enabled: "
-                + ChatColor.DARK_PURPLE + "" + ChatColor.BOLD
+                + translator.getString("bstats_enabled")
+                + ChatColor.DARK_PURPLE + ChatColor.BOLD
                 + registerStats());
 
         // Register error handler for asynchronous functions

@@ -319,6 +319,7 @@ public class LecternHandler extends LecternTracker {
                             Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
                                     + translator.getString("lectern_failed_retrieve_book")
                                     + exception.getMessage());
+
                             return;
                         } catch (NotEnoughPages exception) {
                             String warning = String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
@@ -326,6 +327,7 @@ public class LecternHandler extends LecternTracker {
 
                             updateMainPage(lectern, warning);
                             snapshot.update();
+
                             return;
                         }
 
@@ -397,7 +399,10 @@ public class LecternHandler extends LecternTracker {
         try {
             bookMeta = LecternUtilities.getBookMeta(book);
         } catch (InvalidBook exception) {
-            Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_lectern_handler") + exception.getMessage());
+            Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("lectern_lectern_handler")
+                    + exception.getMessage());
+
             return;
         }
 
