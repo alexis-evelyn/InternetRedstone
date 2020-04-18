@@ -17,7 +17,7 @@ import java.util.UUID;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PlayerInteractEvent.class)
 public class InteractWithLecternTestDisabled {
-    // TODO: Make This Test Work!!!
+    // Make This Test Work!!!
 
 //    @Mock Main main;
     @Mock LecternHandlers handlers;
@@ -36,7 +36,7 @@ public class InteractWithLecternTestDisabled {
         // Return Mock Player When PlayerInteractEvent is Called
         Mockito.when(playerInteractEvent.getPlayer()).thenReturn(player);
 
-        // TODO: Mock Book and Other Classes Too
+        // Mock Book and Other Classes Too
         //  But First, Clean Up Code and Rewrite
 
         // As you can see, I don't know how to set this up properly

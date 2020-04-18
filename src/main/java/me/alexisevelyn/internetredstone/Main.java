@@ -56,9 +56,6 @@ public class Main extends JavaPlugin {
 
         // Register Bukkit Commands
         try {
-            // TODO: Add support for player friendly command (as in not admin)
-            //  Name it internetredstone or swap it and lecterns?
-
             PluginCommand lecterns = getCommand("lecterns");
             Objects.requireNonNull(lecterns).setExecutor(new Lecterns(handlers));
 

@@ -21,7 +21,6 @@ public class MySQLClient {
     Connection connection;
 
     public MySQLClient(Main main) {
-        // TODO: Create database to store registered lecterns in as well as player preferences
         FileConfiguration config = main.getConfiguration().getConfig();
 
         String url = config.getString("mysql.url");

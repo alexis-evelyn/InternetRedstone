@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 
+import javax.annotation.Nullable;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public abstract class LecternTracker extends Tracker {
@@ -12,8 +14,8 @@ public abstract class LecternTracker extends Tracker {
     String topic_ign;
     String broker;
     Boolean retainMessage;
-    String username;
-    String password;
+    @Nullable String username;
+    @Nullable String password;
     Boolean tls;
     Integer port;
 

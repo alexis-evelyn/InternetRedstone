@@ -12,6 +12,7 @@ import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
+import me.alexisevelyn.internetredstone.utilities.data.LWT;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import org.apache.commons.lang.StringUtils;
@@ -97,7 +98,6 @@ public class LecternHandler extends LecternTracker {
         UUID player = getPlayer();
 
         // This string will be read from Player's Config Or If None Provided, Server's Config
-        // TODO: Attempt to retrieve broker from database, or if failed, then load from config
         FileConfiguration config = getMain().getConfiguration().getConfig();
         setBroker(config.getString("default.broker"));
         config.getInt("default.port", 1883);
@@ -106,9 +106,6 @@ public class LecternHandler extends LecternTracker {
 
         // Determine if Should Send Retained Messages Or Not
         setRetainMessage(config.getBoolean("default.retain", true));
-
-        // TODO: Setup username/password/tls support.
-        //  Also, figure out if possible to hash password and still use it in MQTT
 
         String username = config.getString("default.username", null);
         String password = config.getString("default.password", null);
@@ -145,20 +142,22 @@ public class LecternHandler extends LecternTracker {
                     setBroker(playerData.getString("broker"));
                 }
 
-                // TODO: Check if null and if not, set port
-//                if (playerData.getBoolean("port") != null) {
-//                    setPort(playerData.getInt("port"));
-//                }
+                // You have to read the result first before checking if it's null
+                int tempInt = playerData.getInt("port");
+                if (!playerData.wasNull()) {
+                    setPort(tempInt);
+                }
 
                 if (StringUtils.isNotBlank(playerData.getString("username"))) {
                     setUsername(playerData.getString("username"));
                     setPassword(playerData.getString("password"));
                 }
 
-                // TODO: Check if null and if not, set tls
-//                if (playerData.getBoolean("tls") != null) {
-//                    setTls(playerData.getBoolean("tls"));
-//                }
+                // You have to read the result first before checking if it's null
+                boolean tempBool = playerData.getBoolean("tls");
+                if (!playerData.wasNull()) {
+                    setTls(tempBool);
+                }
             }
         } catch(SQLException exception) {
             Logger.severe(ChatColor.GOLD + "" + ChatColor.BOLD +
@@ -206,7 +205,6 @@ public class LecternHandler extends LecternTracker {
         }
 
         // List of Topics to Subscribe To
-        // TODO: Eventually Allow Customizing Topic String In Config
         setTopic_uuid(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
 
         // ArrayList of Topics to Subscribe To
@@ -219,19 +217,17 @@ public class LecternHandler extends LecternTracker {
 
         // Make sure to not set the ign topic to "null"
         if (StringUtils.isNotBlank(playerObject.getName())) {
-            // TODO: Eventually Allow Customizing Topic String In Config
             setTopic_ign(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
             topics.add(getTopic_ign());
         }
 
-        MqttTopicImpl lwt_topic = MqttTopicImpl.of(getTopic_uuid());
-        ByteBuffer lwt_payload = ByteBuffer.wrap("The server has unexpectedly disconnected!!! Your lectern is currently unreachable!!!".getBytes());
+        LWT lwt = new LWT(getTopic_uuid(),"The server has unexpectedly disconnected!!! Your lectern is currently unreachable!!!");
 
         // Create MQTT Client For Lectern
-//        setClient(new MQTTClient(getBroker(), getPort(), getTls(), lwt_topic, lwt_payload));
+//        setClient(new MQTTClient(getBroker(), getPort(), getTls(), lwt));
 
         // Client With Username/Password (TODO: Test if Works With Null Values)
-        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword(), lwt_topic, lwt_payload));
+        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword(), lwt));
 
         return topics;
     }

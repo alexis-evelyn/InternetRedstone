@@ -21,6 +21,7 @@ import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.data.LWT;
 import org.bukkit.ChatColor;
 
 import java.nio.ByteBuffer;
@@ -33,30 +34,29 @@ public class MQTTClient {
     final Mqtt5AsyncClient client;
     final CompletableFuture<Mqtt5ConnAck> connection;
 
-    // TODO: Combine lwt stuff into one class to pass in as a single argument instead of passing in multiple arguments!!!
     @SuppressWarnings("unused")
-    public MQTTClient(String broker, Integer port, Boolean tls, MqttTopicImpl lwt_topic, ByteBuffer lwt_payload) {
+    public MQTTClient(String broker, Integer port, Boolean tls, LWT lwt) {
         if (tls) {
             client = Mqtt5Client
                     .builder()
                     .serverHost(broker)
                     .serverPort(port)
                     .sslWithDefaultConfig()
-                    .willPublish(generateLWT(lwt_topic, lwt_payload))
+                    .willPublish(lwt.getWill())
                     .buildAsync();
         } else {
             client = Mqtt5Client
                     .builder()
                     .serverHost(broker)
                     .serverPort(port)
-                    .willPublish(generateLWT(lwt_topic, lwt_payload))
+                    .willPublish(lwt.getWill())
                     .buildAsync();
         }
 
         connection = client.connect();
     }
 
-    public MQTTClient(String broker, Integer port, Boolean tls, String username, String password, MqttTopicImpl lwt_topic, ByteBuffer lwt_payload) {
+    public MQTTClient(String broker, Integer port, Boolean tls, String username, String password, LWT lwt) {
         MqttUtf8StringImpl formattedUsername = MqttUtf8StringImpl.of(username);
         ByteBuffer formattedPassword = ByteBuffer.wrap(password.getBytes());
 
@@ -69,7 +69,7 @@ public class MQTTClient {
                     .serverPort(port)
                     .sslWithDefaultConfig()
                     .simpleAuth(simpleAuth)
-                    .willPublish(generateLWT(lwt_topic, lwt_payload))
+                    .willPublish(lwt.getWill())
                     .buildAsync();
         } else {
             client = Mqtt5Client
@@ -77,7 +77,7 @@ public class MQTTClient {
                     .serverHost(broker)
                     .serverPort(port)
                     .simpleAuth(simpleAuth)
-                    .willPublish(generateLWT(lwt_topic, lwt_payload))
+                    .willPublish(lwt.getWill())
                     .buildAsync();
         }
 
@@ -143,17 +143,5 @@ public class MQTTClient {
     // When extending the class, use this to have full control over MQTT Setup
     public CompletableFuture<Mqtt5SubAck> subscribe(MqttSubscribe subscription, Consumer<Mqtt5Publish> callback) {
         return client.subscribe(subscription, callback);
-    }
-
-    // TODO: Make This More Configurable Without Making More Complex
-    private MqttWillPublish generateLWT(MqttTopicImpl topic, ByteBuffer payload) {
-        MqttUtf8StringImpl contentType = MqttUtf8StringImpl.of("text/plain");
-
-        return new MqttWillPublish(topic, payload, MqttQos.EXACTLY_ONCE,
-                true, MqttPublish.NO_MESSAGE_EXPIRY,
-                Mqtt5PayloadFormatIndicator.UTF_8,
-                contentType, topic,
-                null, MqttUserPropertiesImpl.NO_USER_PROPERTIES,
-                -1);
     }
 }
