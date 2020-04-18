@@ -13,6 +13,14 @@ public class Translator extends ResourceBundle {
     final private String baseName = "translations/MessagesBundle";
 
     public Translator(@NotNull String parse) {
+        updateLocale(parse);
+    }
+
+    public Translator(String language, String country, String variant) {
+        updateLocale(language, country, variant);
+    }
+
+    public void updateLocale(@NotNull String parse) {
         //  https://papermc.io/javadocs/paper/1.15/org/bukkit/entity/Player.html#getLocale--
         //  https://www.spigotmc.org/threads/getting-client-language.103710/#post-1126571
 
@@ -30,7 +38,7 @@ public class Translator extends ResourceBundle {
         }
     }
 
-    public Translator(String language, String country, String variant) {
+    public void updateLocale(String language, String country, String variant) {
         Locale locale = new Locale(language, country, variant);
         try {
             translation = ResourceBundle.getBundle(baseName, locale);

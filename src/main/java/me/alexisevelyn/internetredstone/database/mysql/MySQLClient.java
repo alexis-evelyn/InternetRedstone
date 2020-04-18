@@ -12,7 +12,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import javax.annotation.Nullable;
 import java.sql.*;
-import java.util.Locale;
 import java.util.UUID;
 
 /* Question
@@ -431,8 +430,7 @@ public class MySQLClient {
             return false;
 
         String query = "UPDATE Players"
-                + " (locale) VALUES"
-                + " (:locale)"
+                + " SET locale = :locale"
                 + " WHERE `uuid` = :uuid LIMIT 1;";
 
         NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
@@ -441,8 +439,6 @@ public class MySQLClient {
         preparedStatement.setString("uuid", player.toString());
         preparedStatement.setString("locale", locale);
 
-        ResultSet updateLocale = preparedStatement.executeQuery();
-
-        return updateLocale.next();
+        return preparedStatement.executeUpdate() > 0;
     }
 }

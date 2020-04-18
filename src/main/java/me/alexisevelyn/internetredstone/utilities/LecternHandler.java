@@ -42,7 +42,11 @@ public class LecternHandler extends LecternTracker {
     private final MySQLClient mySQLClient;
     private final Hashids hashids;
 
+    // Used to store server's translation
     private Translator translator;
+
+    // Used to store last known player's translation
+    private Translator playerTranslator;
 
     public LecternHandler(@NotNull Main main, Location location, UUID player) {
         // This is to be called on player registration
@@ -51,6 +55,9 @@ public class LecternHandler extends LecternTracker {
         setMain(main);
 
         translator = main.getServerTranslator();
+
+        // TODO: Replace With Player's Locale
+        playerTranslator = main.getServerTranslator();
 
         mySQLClient = getMain().getMySQLClient();
 
@@ -381,16 +388,20 @@ public class LecternHandler extends LecternTracker {
         }
     }
 
+    public void setPlayerLocale(String locale) {
+        playerTranslator.updateLocale(locale);
+    }
+
     public void writeLastMessage(Lectern lectern, Mqtt5Publish mqtt5Publish, Integer powerLevel) {
         String page = String.valueOf(ChatColor.DARK_GREEN) + ChatColor.BOLD +
                 // last message
-                translator.getString("lectern_last_message") +
+                playerTranslator.getString("lectern_last_message") +
                 ChatColor.DARK_RED + ChatColor.BOLD +
                 (powerLevel + 1) + "\n" +
 
                 // from channel
                 ChatColor.DARK_GREEN + ChatColor.BOLD +
-                translator.getString("lectern_from_channel") +
+                playerTranslator.getString("lectern_from_channel") +
                 ChatColor.DARK_RED + ChatColor.BOLD +
                 mqtt5Publish.getTopic().toString();
 
@@ -436,22 +447,22 @@ public class LecternHandler extends LecternTracker {
         byte[] payload;
         switch (disconnectReason.getReason()) {
             case BROKEN_LECTERN:
-                payload = translator.getString("lectern_disconnect_broken_lectern").getBytes();
+                payload = playerTranslator.getString("lectern_disconnect_broken_lectern").getBytes();
                 break;
             case OTHER:
-                payload = translator.getString("lectern_disconnect_other").getBytes();
+                payload = playerTranslator.getString("lectern_disconnect_other").getBytes();
                 break;
             case REMOVED_BOOK:
-                payload = translator.getString("lectern_disconnect_removed_book").getBytes();
+                payload = playerTranslator.getString("lectern_disconnect_removed_book").getBytes();
                 break;
             case SERVER_SHUTDOWN:
-                payload = translator.getString("lectern_disconnect_server_shutdown").getBytes();
+                payload = playerTranslator.getString("lectern_disconnect_server_shutdown").getBytes();
                 break;
             case UNSPECIFIED:
-                payload = translator.getString("lectern_disconnect_unspecified").getBytes();
+                payload = playerTranslator.getString("lectern_disconnect_unspecified").getBytes();
                 break;
             default:
-                payload = translator.getString("lectern_disconnect_uncaught").getBytes();
+                payload = playerTranslator.getString("lectern_disconnect_uncaught").getBytes();
         }
 
         // Send Message To Topic With UUID

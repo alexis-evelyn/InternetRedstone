@@ -144,6 +144,14 @@ public class LecternHandlers {
         return handlers;
     }
 
+    public void updatePlayerLocale(UUID player, String locale) {
+        for (LecternHandler handler : handlers.values()) {
+            if (handler.getPlayer().equals(player)) {
+                handler.setPlayerLocale(locale);
+            }
+        }
+    }
+
     public void cleanup(DisconnectReason disconnectReason) {
         for (Tracker tracker : handlers.values()) {
             // Tell tracker to perform cleanup duties (e.g. finish sending data/saving/etc...)
