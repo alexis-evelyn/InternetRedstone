@@ -1,12 +1,9 @@
 package me.alexisevelyn.internetredstone.network.mqtt;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttTopicFilterImpl;
-import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
 import com.hivemq.client.internal.mqtt.datatypes.MqttUserPropertiesImpl;
 import com.hivemq.client.internal.mqtt.datatypes.MqttUtf8StringImpl;
 import com.hivemq.client.internal.mqtt.message.auth.MqttSimpleAuth;
-import com.hivemq.client.internal.mqtt.message.publish.MqttPublish;
-import com.hivemq.client.internal.mqtt.message.publish.MqttWillPublish;
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscribe;
 import com.hivemq.client.internal.mqtt.message.subscribe.MqttSubscription;
 import com.hivemq.client.internal.util.collections.ImmutableList;
@@ -14,16 +11,16 @@ import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PayloadFormatIndicator;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.Mqtt5RetainHandling;
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck;
 import lombok.Data;
 import me.alexisevelyn.internetredstone.utilities.Logger;
-import me.alexisevelyn.internetredstone.utilities.data.LWT;
+import me.alexisevelyn.internetredstone.utilities.data.LastWillAndTestamentBuilder;
 import org.bukkit.ChatColor;
 
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +32,7 @@ public class MQTTClient {
     final CompletableFuture<Mqtt5ConnAck> connection;
 
     @SuppressWarnings("unused")
-    public MQTTClient(String broker, Integer port, Boolean tls, LWT lwt) {
+    public MQTTClient(String broker, Integer port, Boolean tls, LastWillAndTestamentBuilder lwt) {
         if (tls) {
             client = Mqtt5Client
                     .builder()
@@ -56,9 +53,12 @@ public class MQTTClient {
         connection = client.connect();
     }
 
-    public MQTTClient(String broker, Integer port, Boolean tls, String username, String password, LWT lwt) {
+    public MQTTClient(String broker, Integer port, Boolean tls, String username, @Nullable String password, LastWillAndTestamentBuilder lwt) {
         MqttUtf8StringImpl formattedUsername = MqttUtf8StringImpl.of(username);
-        ByteBuffer formattedPassword = ByteBuffer.wrap(password.getBytes());
+        ByteBuffer formattedPassword = null;
+
+        if (password != null)
+            formattedPassword = ByteBuffer.wrap(password.getBytes());
 
         MqttSimpleAuth simpleAuth = new MqttSimpleAuth(formattedUsername, formattedPassword);
 
@@ -111,7 +111,7 @@ public class MQTTClient {
         boolean noLocal = true; // Don't Send Us A Copy of Messages We Send - Very Important To Prevent Feedback Loop Due To Sharing Input/Output In Same Lectern
 
         // Docs For Mqtt5RetainHandling - https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104
-        Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
+        Mqtt5RetainHandling retainHandling = Mqtt5RetainHandling.DO_NOT_SEND; // Send Retained Messages on Subscribe/Don't Send/Only Send If Not Subscribed To This Topic Before (According To Cache)
         boolean retainAsPublished = true; // True means retain flag is set when sent to us if it was set by the publisher.
 
         ArrayList<MqttSubscription> subscriptionsList = new ArrayList<>();

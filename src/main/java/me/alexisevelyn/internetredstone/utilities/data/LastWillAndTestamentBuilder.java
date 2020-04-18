@@ -12,32 +12,37 @@ import lombok.Data;
 import java.nio.ByteBuffer;
 
 @Data
-public class LWT {
+public class LastWillAndTestamentBuilder {
     MqttTopicImpl topic;
-    ByteBuffer payload;
+    MqttQos qos = MqttQos.EXACTLY_ONCE;
+    Mqtt5PayloadFormatIndicator payloadFormatIndicator = Mqtt5PayloadFormatIndicator.UTF_8;
+    MqttUserPropertiesImpl userProperties = MqttUserPropertiesImpl.NO_USER_PROPERTIES;
+    MqttUtf8StringImpl contentType = MqttUtf8StringImpl.of("text/plain");
 
-    public LWT(MqttTopicImpl topic, ByteBuffer payload) {
+    ByteBuffer payload;
+    ByteBuffer correlationData = null;
+
+    long messageExpiry = MqttPublish.NO_MESSAGE_EXPIRY;
+    boolean retainMessage = true;
+    int delayInterval = -1;
+
+    @SuppressWarnings("unused")
+    public LastWillAndTestamentBuilder(MqttTopicImpl topic, ByteBuffer payload) {
         this.topic = topic;
         this.payload = payload;
     }
 
-    public LWT(String topic, String payload) {
+    public LastWillAndTestamentBuilder(String topic, String payload) {
         this.topic = MqttTopicImpl.of(topic);
         this.payload = ByteBuffer.wrap(payload.getBytes());
     }
 
     public MqttWillPublish getWill() {
-        return generateLWT(topic, payload);
-    }
-
-    private MqttWillPublish generateLWT(MqttTopicImpl topic, ByteBuffer payload) {
-        MqttUtf8StringImpl contentType = MqttUtf8StringImpl.of("text/plain");
-
-        return new MqttWillPublish(topic, payload, MqttQos.EXACTLY_ONCE,
-                true, MqttPublish.NO_MESSAGE_EXPIRY,
-                Mqtt5PayloadFormatIndicator.UTF_8,
+        return new MqttWillPublish(topic, payload, qos,
+                retainMessage, messageExpiry,
+                payloadFormatIndicator,
                 contentType, topic,
-                null, MqttUserPropertiesImpl.NO_USER_PROPERTIES,
-                -1);
+                correlationData, userProperties,
+                delayInterval);
     }
 }

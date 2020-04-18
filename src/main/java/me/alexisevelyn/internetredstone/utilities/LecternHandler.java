@@ -1,6 +1,5 @@
 package me.alexisevelyn.internetredstone.utilities;
 
-import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.exceptions.ConnectionClosedException;
 import com.hivemq.client.mqtt.exceptions.ConnectionFailedException;
@@ -12,7 +11,7 @@ import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.abstracted.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
-import me.alexisevelyn.internetredstone.utilities.data.LWT;
+import me.alexisevelyn.internetredstone.utilities.data.LastWillAndTestamentBuilder;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +28,6 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.hashids.Hashids;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.sql.ResultSet;
@@ -221,7 +219,7 @@ public class LecternHandler extends LecternTracker {
             topics.add(getTopic_ign());
         }
 
-        LWT lwt = new LWT(getTopic_uuid(),"The server has unexpectedly disconnected!!! Your lectern is currently unreachable!!!");
+        LastWillAndTestamentBuilder lwt = new LastWillAndTestamentBuilder(getTopic_uuid(),"The server has unexpectedly disconnected!!! Your lectern is currently unreachable!!!");
 
         // Create MQTT Client For Lectern
 //        setClient(new MQTTClient(getBroker(), getPort(), getTls(), lwt));
