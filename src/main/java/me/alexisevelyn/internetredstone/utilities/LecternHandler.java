@@ -1,6 +1,6 @@
 package me.alexisevelyn.internetredstone.utilities;
 
-import com.hivemq.client.mqtt.datatypes.MqttQos;
+import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
 import com.hivemq.client.mqtt.exceptions.ConnectionClosedException;
 import com.hivemq.client.mqtt.exceptions.ConnectionFailedException;
 import com.hivemq.client.mqtt.exceptions.MqttClientStateException;
@@ -10,8 +10,9 @@ import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
-import me.alexisevelyn.internetredstone.utilities.data.LastWillAndTestamentBuilder;
 import me.alexisevelyn.internetredstone.utilities.data.LecternTracker;
+import me.alexisevelyn.internetredstone.utilities.data.MQTTSettings;
+import me.alexisevelyn.internetredstone.utilities.data.PlayerSettings;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import me.alexisevelyn.internetredstone.utilities.exceptions.NotEnoughPages;
 import org.apache.commons.lang.StringUtils;
@@ -39,39 +40,33 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class LecternHandler extends LecternTracker {
-    private final MySQLClient mySQLClient;
-    private final Hashids hashids;
-
     // Used to store server's translation
     private Translator translator;
 
-    // Used to store last known player's translation
-    private Translator playerTranslator;
+    // Settings for MQTT Client
+    private MQTTSettings mqttSettings;
 
-    public LecternHandler(@NotNull Main main, Location location, UUID player) {
+    // MySQL Client
+    private MySQLClient mySQLClient;
+
+    // Hash IDS
+    private Hashids hashids;
+
+    public LecternHandler(@NotNull Main main, Location location, PlayerSettings player) {
         // This is to be called on player registration
-        // Originally the plan was to have 2 constructors, one with the player and one without the player (to be used on startup).
-        setPlayer(player);
         setMain(main);
+        setLocation(location);
+        setPlayer(player);
 
         translator = main.getServerTranslator();
-
-        // TODO: Replace With Player's Locale
-        playerTranslator = main.getServerTranslator();
-
-        mySQLClient = getMain().getMySQLClient();
+        mqttSettings = new MQTTSettings();
+        mySQLClient = main.getMySQLClient();
 
         // Grab Hash From Config Or If Failed, Generate One Randomly
         hashids = new Hashids(getMain().getConfiguration().getConfig().getString("lectern.id-hash", UUID.randomUUID().toString()));
 
-        setupLecternTracker(location);
-    }
-
-    private void setupLecternTracker(Location location) {
-        setLocation(location);
-
         try {
-            ArrayList<String> topics = loadLecternProperties();
+            ArrayList<MqttTopicImpl> topics = loadLecternProperties();
 
             /* Subscribe to Topics through ArrayList method
              *
@@ -95,47 +90,33 @@ public class LecternHandler extends LecternTracker {
         // Convert Integer to byte array for MQTT Client to Process
         byte[] payload = signal.toString().getBytes();
 
-        // Send Message To Topic With UUID
-        getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
-
-        // Send Message To Topic With IGN - Topic may be null here
-        if (getTopic_ign() != null) {
-            getClient().sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
+        // Send Message To Registered Topics
+        for (MqttTopicImpl topic : mqttSettings.getTopics()) {
+            getClient().sendMessage(topic, payload);
         }
     }
 
-    private ArrayList<String> loadLecternProperties() {
+    private ArrayList<MqttTopicImpl> loadLecternProperties() {
         // Retrieve Player's UUID
-        UUID player = getPlayer();
+        UUID player = getPlayer().getUUID();
 
         // This string will be read from Player's Config Or If None Provided, Server's Config
         FileConfiguration config = getMain().getConfiguration().getConfig();
-        setBroker(config.getString("default.broker"));
-        config.getInt("default.port", 1883);
+
+        // Connection Settings
+        mqttSettings.setBroker(config.getString("default.broker"));
+        mqttSettings.setPort(config.getInt("default.port", 1883));
+        mqttSettings.setTls(config.getBoolean("default.tls", false));
+
+        // Authentication
+        mqttSettings.setSimpleAuth(config.getString("default.username", null),
+                config.getString("default.password", null));
 
         String server_name = config.getString("server-name");
 
         // Determine if Should Send Retained Messages Or Not
-        setRetainMessage(config.getBoolean("default.retain", true));
+        mqttSettings.setRetainMessage(config.getBoolean("default.retain", true));
 
-        String username = config.getString("default.username", null);
-        String password = config.getString("default.password", null);
-
-        /* Notes
-         *
-         * https://www.hivemq.com/blog/mqtt-security-fundamentals-authentication-username-password/
-         *
-         * The MQTT specification states that you can send a username without password,
-         * but it is not possible to send a password without username.
-         * MQTT version 3.1.1 also removes the previous recommendation for 12 character passwords.
-         */
-        if (StringUtils.isNotBlank(username)) {
-            setUsername(username);
-            setPassword(password);
-        }
-
-        setTls(config.getBoolean("default.tls", false));
-        setPort(config.getInt("default.port", 1883));
 
         ResultSet lecternData;
         ResultSet playerData;
@@ -149,26 +130,21 @@ public class LecternHandler extends LecternTracker {
 
             playerData = mySQLClient.retrievePlayerDataIfExists(player);
             if (playerData != null && playerData.next()) {
-                if (StringUtils.isNotBlank(playerData.getString("broker"))) {
-                    setBroker(playerData.getString("broker"));
-                }
+                if (StringUtils.isNotBlank(playerData.getString("broker")))
+                    mqttSettings.setBroker(playerData.getString("broker"));
 
                 // You have to read the result first before checking if it's null
                 int tempInt = playerData.getInt("port");
-                if (!playerData.wasNull()) {
-                    setPort(tempInt);
-                }
+                if (!playerData.wasNull())
+                    mqttSettings.setPort(tempInt);
 
-                if (StringUtils.isNotBlank(playerData.getString("username"))) {
-                    setUsername(playerData.getString("username"));
-                    setPassword(playerData.getString("password"));
-                }
+                if (StringUtils.isNotBlank(playerData.getString("username")))
+                    mqttSettings.setSimpleAuth(playerData.getString("username"), playerData.getString("password"));
 
                 // You have to read the result first before checking if it's null
                 boolean tempBool = playerData.getBoolean("tls");
-                if (!playerData.wasNull()) {
-                    setTls(tempBool);
-                }
+                if (!playerData.wasNull())
+                    mqttSettings.setTls(tempBool);
             }
         } catch(SQLException exception) {
             Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
@@ -216,11 +192,7 @@ public class LecternHandler extends LecternTracker {
         }
 
         // List of Topics to Subscribe To
-        setTopic_uuid(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
-
-        // ArrayList of Topics to Subscribe To
-        ArrayList<String> topics = new ArrayList<>();
-        topics.add(getTopic_uuid());
+        mqttSettings.addTopic(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
 
         // Get Player's Name if Possible, Otherwise, Just Stick With UUID
         // This should work regardless if the player is online or not, so long as we have seen them before.
@@ -228,19 +200,16 @@ public class LecternHandler extends LecternTracker {
 
         // Make sure to not set the ign topic to "null"
         if (StringUtils.isNotBlank(playerObject.getName())) {
-            setTopic_ign(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
-            topics.add(getTopic_ign());
+            mqttSettings.addTopic(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
         }
-
-        LastWillAndTestamentBuilder lwt = new LastWillAndTestamentBuilder(getTopic_uuid(),"The server has unexpectedly disconnected!!! Your lectern is currently unreachable!!!");
 
         // Create MQTT Client For Lectern
 //        setClient(new MQTTClient(getBroker(), getPort(), getTls(), lwt));
 
         // Client With Username/Password (TODO: Test if Works With Null Values)
-        setClient(new MQTTClient(getBroker(), getPort(), getTls(), getUsername(), getPassword(), lwt));
+        setClient(new MQTTClient(mqttSettings));
 
-        return topics;
+        return mqttSettings.getTopics();
     }
 
     private void addDatabaseEntry() {
@@ -252,15 +221,15 @@ public class LecternHandler extends LecternTracker {
                 // Broker is set to null as user can set broker via commands. Same for username and password.
                 // The player data won't be overwritten by setting it again. The same goes for the lectern.
                 // Also, we are going to use the default settings provided by the server owner if it's null in the database.
-                Player player = Bukkit.getPlayer(getPlayer());
+                Player player = Bukkit.getPlayer(getPlayer().getUUID());
 
                 // If Player object is null (e.g. player is offline), then set Locale to null, otherwise set the player's locale
                 if (player != null)
-                    mySQLClient.storeUserPreferences(null, null, null, getPlayer(), player.getLocale());
+                    mySQLClient.storeUserPreferences(null, null, null, getPlayer().getUUID(), player.getLocale());
                 else
-                    mySQLClient.storeUserPreferences(null, null, null, getPlayer(), null);
+                    mySQLClient.storeUserPreferences(null, null, null, getPlayer().getUUID(), null);
 
-                mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
+                mySQLClient.registerLectern(getPlayer().getUUID(), getLocation(), getLecternID(), getLastKnownPower());
             } catch (SQLException exception) {
                 Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_add_entries_sql_exception"));
                 Logger.printException(exception);
@@ -388,20 +357,16 @@ public class LecternHandler extends LecternTracker {
         }
     }
 
-    public void setPlayerLocale(String locale) {
-        playerTranslator.updateLocale(locale);
-    }
-
     public void writeLastMessage(Lectern lectern, Mqtt5Publish mqtt5Publish, Integer powerLevel) {
         String page = String.valueOf(ChatColor.DARK_GREEN) + ChatColor.BOLD +
                 // last message
-                playerTranslator.getString("lectern_last_message") +
+                getPlayer().getTranslator().getString("lectern_last_message") +
                 ChatColor.DARK_RED + ChatColor.BOLD +
                 (powerLevel + 1) + "\n" +
 
                 // from channel
                 ChatColor.DARK_GREEN + ChatColor.BOLD +
-                playerTranslator.getString("lectern_from_channel") +
+                getPlayer().getTranslator().getString("lectern_from_channel") +
                 ChatColor.DARK_RED + ChatColor.BOLD +
                 mqtt5Publish.getTopic().toString();
 
@@ -447,30 +412,23 @@ public class LecternHandler extends LecternTracker {
         byte[] payload;
         switch (disconnectReason.getReason()) {
             case BROKEN_LECTERN:
-                payload = playerTranslator.getString("lectern_disconnect_broken_lectern").getBytes();
+                payload = getPlayer().getTranslator().getString("lectern_disconnect_broken_lectern").getBytes();
                 break;
             case OTHER:
-                payload = playerTranslator.getString("lectern_disconnect_other").getBytes();
+                payload = getPlayer().getTranslator().getString("lectern_disconnect_other").getBytes();
                 break;
             case REMOVED_BOOK:
-                payload = playerTranslator.getString("lectern_disconnect_removed_book").getBytes();
+                payload = getPlayer().getTranslator().getString("lectern_disconnect_removed_book").getBytes();
                 break;
             case SERVER_SHUTDOWN:
-                payload = playerTranslator.getString("lectern_disconnect_server_shutdown").getBytes();
-                break;
-            case UNSPECIFIED:
-                payload = playerTranslator.getString("lectern_disconnect_unspecified").getBytes();
+                payload = getPlayer().getTranslator().getString("lectern_disconnect_server_shutdown").getBytes();
                 break;
             default:
-                payload = playerTranslator.getString("lectern_disconnect_uncaught").getBytes();
+                payload = getPlayer().getTranslator().getString("lectern_disconnect_uncaught").getBytes();
         }
 
-        // Send Message To Topic With UUID
-        getClient().sendMessage(getTopic_uuid(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
-
-        // Send Message To Topic With IGM - Topic may be null here
-        if (getTopic_ign() != null) {
-            getClient().sendMessage(getTopic_ign(), payload, MqttQos.EXACTLY_ONCE, getRetainMessage());
+        for (MqttTopicImpl topic : mqttSettings.getTopics()) {
+            getClient().sendMessage(topic, payload);
         }
 
         getClient().disconnect();

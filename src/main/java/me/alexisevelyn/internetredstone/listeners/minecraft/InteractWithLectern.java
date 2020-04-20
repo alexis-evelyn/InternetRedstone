@@ -7,7 +7,6 @@ import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -27,31 +26,29 @@ public class InteractWithLectern implements Listener {
     public void interactWithLectern(PlayerInteractEvent event) {
         // Register Lectern With Plugin if Special Lectern
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
-
-        if (event.getClickedBlock() == null)
+        // Process Only if Right Click and Clicking a Block
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null)
             return;
 
         BlockState snapshot = event.getClickedBlock().getState();
+        Location location = snapshot.getLocation();
 
+        // If Block is Registered, Then Just Return
+        if (handlers.isRegistered(location))
+            return;
+
+        // Block is a Lectern, Then Validate and Register The Lectern
+        // Validate means to ensure it's a special lectern for the plugin
         if (snapshot instanceof Lectern) {
-            Lectern lectern = (Lectern) snapshot;
-            LecternInventory inventory = (LecternInventory) lectern.getSnapshotInventory();
-            Player player = event.getPlayer();
+            LecternInventory inventory = (LecternInventory) ((Lectern) snapshot).getSnapshotInventory();
 
-            // That way the player doesn't have to click twice to register the lectern
-            if (!isLecternEmpty(inventory) || !checkHand(event)) {
-                // Return since it's not special book or lectern is not empty
-                // Assuming vanilla lectern then
+            // Check If Lectern is empty and if so, make sure the player has a special book
+            if (!isLecternEmpty(inventory) || !checkHand(event))
                 return;
-            }
 
-            Location location = lectern.getLocation();
-            UUID player_uuid = player.getUniqueId();
-
-            if (!handlers.isRegistered(location))
-                handlers.registerHandler(location, player_uuid);
+            // Get Player's UUID and Register Lectern
+            UUID player_uuid = event.getPlayer().getUniqueId();
+            handlers.registerHandler(location, player_uuid);
         }
     }
 

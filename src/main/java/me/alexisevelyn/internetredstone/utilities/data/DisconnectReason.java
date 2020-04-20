@@ -18,8 +18,6 @@ public class DisconnectReason {
         BROKEN_LECTERN,
         OTHER,
         REMOVED_BOOK,
-        SERVER_SHUTDOWN,
-        UNSPECIFIED
-
+        SERVER_SHUTDOWN
     }
 }

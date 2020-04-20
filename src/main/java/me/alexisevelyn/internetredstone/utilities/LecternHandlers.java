@@ -1,8 +1,10 @@
 package me.alexisevelyn.internetredstone.utilities;
 
+import lombok.Data;
 import lombok.SneakyThrows;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
+import me.alexisevelyn.internetredstone.utilities.data.PlayerSettings;
 import me.alexisevelyn.internetredstone.utilities.data.Tracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.exceptions.DuplicateObjectException;
@@ -18,15 +20,16 @@ import java.util.IllegalFormatException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Data
 public class LecternHandlers {
     // Main class used to get synchronous execution
-    final Main main;
+    final private Main main;
 
     // Server Translation Language
-    final Translator translator;
+    final private Translator translator;
 
     // List of Tracker Objects
-    final private ConcurrentHashMap<Location, LecternHandler> handlers;
+    final ConcurrentHashMap<Location, LecternHandler> handlers;
 
     public LecternHandlers(Main main) {
         this.main = main;
@@ -74,7 +77,7 @@ public class LecternHandlers {
     }
 
     @SneakyThrows
-    public void registerHandler(Location location, UUID player) {
+    public void registerHandler(Location location, PlayerSettings player) {
         if (handlers.containsKey(location)) {
             String warning;
             try {
@@ -90,10 +93,6 @@ public class LecternHandlers {
 
         LecternHandler handler = new LecternHandler(main, location, player);
         handlers.put(location, handler);
-    }
-
-    public void unregisterHandler(Location location) {
-        unregisterHandler(location, new DisconnectReason(DisconnectReason.Reason.UNSPECIFIED));
     }
 
     @SneakyThrows
@@ -142,14 +141,6 @@ public class LecternHandlers {
 
     public ConcurrentHashMap<Location, LecternHandler> getHandlers() {
         return handlers;
-    }
-
-    public void updatePlayerLocale(UUID player, String locale) {
-        for (LecternHandler handler : handlers.values()) {
-            if (handler.getPlayer().equals(player)) {
-                handler.setPlayerLocale(locale);
-            }
-        }
     }
 
     public void cleanup(DisconnectReason disconnectReason) {

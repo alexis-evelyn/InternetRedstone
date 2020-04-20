@@ -25,16 +25,10 @@ public class LastWillAndTestamentBuilder {
     long messageExpiry = MqttPublish.NO_MESSAGE_EXPIRY;
     boolean retainMessage = true;
     int delayInterval = -1;
-
-    @SuppressWarnings("unused")
+    
     public LastWillAndTestamentBuilder(MqttTopicImpl topic, ByteBuffer payload) {
         this.topic = topic;
         this.payload = payload;
-    }
-
-    public LastWillAndTestamentBuilder(String topic, String payload) {
-        this.topic = MqttTopicImpl.of(topic);
-        this.payload = ByteBuffer.wrap(payload.getBytes());
     }
 
     public MqttWillPublish getWill() {
