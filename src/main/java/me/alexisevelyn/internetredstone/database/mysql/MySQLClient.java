@@ -408,6 +408,14 @@ public class MySQLClient {
         return preparedStatement.executeQuery();
     }
 
+    public ResultSet retrieveAllRegisteredPlayersIfExists() throws SQLException {
+        String query = "SELECT uuid, broker, port, tls, username, password, numberOfLecternsRegistered, locale FROM Players;";
+
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        return preparedStatement.executeQuery();
+    }
+
     // Used to Check If Lectern ID is Already Used On New Registration
     public Boolean isLecternIDUsed(String uuid) throws SQLException {
         String query = "SELECT EXISTS(SELECT entry FROM Lecterns" +

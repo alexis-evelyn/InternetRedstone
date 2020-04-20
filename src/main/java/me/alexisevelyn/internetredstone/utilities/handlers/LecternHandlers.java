@@ -1,9 +1,11 @@
-package me.alexisevelyn.internetredstone.utilities;
+package me.alexisevelyn.internetredstone.utilities.handlers;
 
 import lombok.Data;
 import lombok.SneakyThrows;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
+import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.Translator;
 import me.alexisevelyn.internetredstone.utilities.data.PlayerSettings;
 import me.alexisevelyn.internetredstone.utilities.data.Tracker;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
@@ -31,11 +33,18 @@ public class LecternHandlers {
     // List of Tracker Objects
     final ConcurrentHashMap<Location, LecternHandler> handlers;
 
+    // List of PlayerSettings
+    final PlayerHandlers playerHandlers;
+
     public LecternHandlers(Main main) {
         this.main = main;
         translator = main.getServerTranslator();
 
+        playerHandlers = new PlayerHandlers(main);
         handlers = new ConcurrentHashMap<>();
+
+        // Register Saved Handlers From Database
+        registerSavedHandlers();
     }
 
     public void registerSavedHandlers() {
@@ -46,12 +55,12 @@ public class LecternHandlers {
 
             Logger.info(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_startup_registering_all"));
 
-            UUID player;
+            UUID player_uuid;
             World world;
             Location lectern;
 
             while (lecternsInfo.next()) {
-                player = UUID.fromString(lecternsInfo.getString("uuid"));
+                player_uuid = UUID.fromString(lecternsInfo.getString("uuid"));
                 world = Bukkit.getWorld(
                             UUID.fromString(
                                     lecternsInfo.getString("worldUID")
@@ -62,7 +71,8 @@ public class LecternHandlers {
                         lecternsInfo.getDouble("y"),
                         lecternsInfo.getDouble("z"));
 
-                registerHandler(lectern, player);
+
+                registerHandler(lectern, playerHandlers.getHandler(player_uuid));
 
                 Logger.finer(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
                         + translator.getString("lectern_startup_register")

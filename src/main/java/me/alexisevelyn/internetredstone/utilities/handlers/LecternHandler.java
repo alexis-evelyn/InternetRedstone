@@ -1,4 +1,4 @@
-package me.alexisevelyn.internetredstone.utilities;
+package me.alexisevelyn.internetredstone.utilities.handlers;
 
 import com.hivemq.client.internal.mqtt.datatypes.MqttTopicImpl;
 import com.hivemq.client.mqtt.exceptions.ConnectionClosedException;
@@ -9,6 +9,9 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import me.alexisevelyn.internetredstone.Main;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
+import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
+import me.alexisevelyn.internetredstone.utilities.Logger;
+import me.alexisevelyn.internetredstone.utilities.Translator;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import me.alexisevelyn.internetredstone.utilities.data.LecternTracker;
 import me.alexisevelyn.internetredstone.utilities.data.MQTTSettings;
@@ -43,6 +46,9 @@ public class LecternHandler extends LecternTracker {
     // Used to store server's translation
     private Translator translator;
 
+    // Player Settings
+    private PlayerSettings playerSettings;
+
     // Settings for MQTT Client
     private MQTTSettings mqttSettings;
 
@@ -59,7 +65,8 @@ public class LecternHandler extends LecternTracker {
         setPlayer(player);
 
         translator = main.getServerTranslator();
-        mqttSettings = new MQTTSettings();
+        playerSettings = player;
+        mqttSettings = player.getMqttSettings();
         mySQLClient = main.getMySQLClient();
 
         // Grab Hash From Config Or If Failed, Generate One Randomly
@@ -96,61 +103,12 @@ public class LecternHandler extends LecternTracker {
         }
     }
 
-    private ArrayList<MqttTopicImpl> loadLecternProperties() {
-        // Retrieve Player's UUID
-        UUID player = getPlayer().getUUID();
+    private ArrayList<MqttTopicImpl> loadLecternProperties() throws SQLException {
+        lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
 
-        // This string will be read from Player's Config Or If None Provided, Server's Config
-        FileConfiguration config = getMain().getConfiguration().getConfig();
-
-        // Connection Settings
-        mqttSettings.setBroker(config.getString("default.broker"));
-        mqttSettings.setPort(config.getInt("default.port", 1883));
-        mqttSettings.setTls(config.getBoolean("default.tls", false));
-
-        // Authentication
-        mqttSettings.setSimpleAuth(config.getString("default.username", null),
-                config.getString("default.password", null));
-
-        String server_name = config.getString("server-name");
-
-        // Determine if Should Send Retained Messages Or Not
-        mqttSettings.setRetainMessage(config.getBoolean("default.retain", true));
-
-
-        ResultSet lecternData;
-        ResultSet playerData;
-        try {
-            lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
-
-            if (lecternData != null && lecternData.next()) {
-                setLecternID(lecternData.getString("lecternID"));
-                setLastKnownPower(lecternData.getInt("lastKnownRedstoneSignal"));
-            }
-
-            playerData = mySQLClient.retrievePlayerDataIfExists(player);
-            if (playerData != null && playerData.next()) {
-                if (StringUtils.isNotBlank(playerData.getString("broker")))
-                    mqttSettings.setBroker(playerData.getString("broker"));
-
-                // You have to read the result first before checking if it's null
-                int tempInt = playerData.getInt("port");
-                if (!playerData.wasNull())
-                    mqttSettings.setPort(tempInt);
-
-                if (StringUtils.isNotBlank(playerData.getString("username")))
-                    mqttSettings.setSimpleAuth(playerData.getString("username"), playerData.getString("password"));
-
-                // You have to read the result first before checking if it's null
-                boolean tempBool = playerData.getBoolean("tls");
-                if (!playerData.wasNull())
-                    mqttSettings.setTls(tempBool);
-            }
-        } catch(SQLException exception) {
-            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
-                    translator.getString("lectern_failed_database_retrieval"));
-
-            Logger.printException(exception);
+        if (lecternData != null && lecternData.next()) {
+            setLecternID(lecternData.getString("lecternID"));
+            setLastKnownPower(lecternData.getInt("lastKnownRedstoneSignal"));
         }
 
         // Checks if String Was Previously Set Because Of MySQL Data
@@ -191,6 +149,8 @@ public class LecternHandler extends LecternTracker {
             }
         }
 
+        String server_name = config.getString("server-name");
+
         // List of Topics to Subscribe To
         mqttSettings.addTopic(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
 
@@ -203,13 +163,8 @@ public class LecternHandler extends LecternTracker {
             mqttSettings.addTopic(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
         }
 
-        // Create MQTT Client For Lectern
-//        setClient(new MQTTClient(getBroker(), getPort(), getTls(), lwt));
-
         // Client With Username/Password (TODO: Test if Works With Null Values)
-        setClient(new MQTTClient(mqttSettings));
-
-        return mqttSettings.getTopics();
+        new MQTTClient(mqttSettings);
     }
 
     private void addDatabaseEntry() {

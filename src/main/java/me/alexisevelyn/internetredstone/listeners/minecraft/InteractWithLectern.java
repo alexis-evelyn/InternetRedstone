@@ -1,9 +1,10 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import lombok.Data;
-import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.LecternUtilities;
 import me.alexisevelyn.internetredstone.utilities.exceptions.InvalidBook;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.handlers.PlayerHandlers;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
@@ -15,11 +16,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.LecternInventory;
 import org.bukkit.inventory.meta.BookMeta;
 
-import java.util.UUID;
-
 @Data
 public class InteractWithLectern implements Listener {
-    final private LecternHandlers handlers;
+    final private LecternHandlers lecternHandlers;
+    final private PlayerHandlers playerHandlers;
 
     // We get called last, so a claim plugin can handle their stuff before we get the event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -34,7 +34,7 @@ public class InteractWithLectern implements Listener {
         Location location = snapshot.getLocation();
 
         // If Block is Registered, Then Just Return
-        if (handlers.isRegistered(location))
+        if (lecternHandlers.isRegistered(location))
             return;
 
         // Block is a Lectern, Then Validate and Register The Lectern
@@ -47,8 +47,7 @@ public class InteractWithLectern implements Listener {
                 return;
 
             // Get Player's UUID and Register Lectern
-            UUID player_uuid = event.getPlayer().getUniqueId();
-            handlers.registerHandler(location, player_uuid);
+            lecternHandlers.registerHandler(location, playerHandlers.getHandler(event.getPlayer().getUniqueId()));
         }
     }
 

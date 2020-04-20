@@ -1,18 +1,13 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
-import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandlers;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.UUID;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PlayerInteractEvent.class)

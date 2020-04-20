@@ -1,7 +1,7 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import lombok.Data;
-import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;

@@ -2,8 +2,8 @@ package me.alexisevelyn.internetredstone.listeners.minecraft.commands;
 
 import lombok.Data;
 import me.alexisevelyn.internetredstone.Main;
-import me.alexisevelyn.internetredstone.utilities.LecternHandler;
-import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandler;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.Translator;
 import org.bukkit.ChatColor;
@@ -11,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

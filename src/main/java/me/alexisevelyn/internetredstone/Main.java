@@ -5,10 +5,11 @@ import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.listeners.minecraft.*;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Lecterns;
 import me.alexisevelyn.internetredstone.settings.Configuration;
-import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandlers;
 import me.alexisevelyn.internetredstone.utilities.Logger;
 import me.alexisevelyn.internetredstone.utilities.Translator;
 import me.alexisevelyn.internetredstone.utilities.data.DisconnectReason;
+import me.alexisevelyn.internetredstone.utilities.handlers.PlayerHandlers;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
@@ -18,7 +19,8 @@ import java.sql.ResultSet;
 import java.util.Objects;
 
 public class Main extends JavaPlugin {
-    private LecternHandlers handlers;
+    private LecternHandlers lecternHandlers;
+    private PlayerHandlers playerHandlers;
 
     private Configuration config;
     private MySQLClient client;
@@ -47,26 +49,26 @@ public class Main extends JavaPlugin {
         RxJavaPlugins.setErrorHandler(Logger::rxHandler);
 
         // Register lectern trackers class
-        handlers = new LecternHandlers(this);
+        lecternHandlers = new LecternHandlers(this);
 
-        // Register Saved Trackers From Database
-        handlers.registerSavedHandlers();
+        // Register Player Handlers Class
+        playerHandlers = new PlayerHandlers(this);
 
         // Register Bukkit Event Listeners
-        getServer().getPluginManager().registerEvents(new RedstoneUpdate(handlers), this);
-        getServer().getPluginManager().registerEvents(new InteractWithLectern(handlers), this);
-        getServer().getPluginManager().registerEvents(new TakeBook(handlers), this);
-        getServer().getPluginManager().registerEvents(new BreakLectern(handlers), this);
-        getServer().getPluginManager().registerEvents(new LocaleChanged(client, translator, handlers), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoined(client, translator, handlers), this);
+        getServer().getPluginManager().registerEvents(new RedstoneUpdate(lecternHandlers), this);
+        getServer().getPluginManager().registerEvents(new InteractWithLectern(lecternHandlers, playerHandlers), this);
+        getServer().getPluginManager().registerEvents(new TakeBook(lecternHandlers), this);
+        getServer().getPluginManager().registerEvents(new BreakLectern(lecternHandlers), this);
+        getServer().getPluginManager().registerEvents(new LocaleChanged(translator, playerHandlers), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoined(translator, playerHandlers), this);
 
         // Register Bukkit Commands
         try {
             PluginCommand lecterns = getCommand("lecterns");
-            Objects.requireNonNull(lecterns).setExecutor(new Lecterns(handlers, this));
+            Objects.requireNonNull(lecterns).setExecutor(new Lecterns(lecternHandlers, this));
 
             PluginCommand internetredstone = getCommand("internetredstone");
-            Objects.requireNonNull(internetredstone).setExecutor(new Lecterns(handlers, this));
+            Objects.requireNonNull(internetredstone).setExecutor(new Lecterns(lecternHandlers, this));
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }
@@ -77,8 +79,8 @@ public class Main extends JavaPlugin {
         // Plugin shutdown logic
 
         // Close MQTT Connections Properly (So, players can get notified on server shutdown/etc...)
-        handlers.cleanup(new DisconnectReason(DisconnectReason.Reason.SERVER_SHUTDOWN));
-        handlers = null;
+        lecternHandlers.cleanup(new DisconnectReason(DisconnectReason.Reason.SERVER_SHUTDOWN));
+        lecternHandlers = null;
 
         // Close MySQL Connection
         client.disconnect();

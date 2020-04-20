@@ -1,8 +1,8 @@
 package me.alexisevelyn.internetredstone.listeners.minecraft;
 
 import lombok.Data;
-import me.alexisevelyn.internetredstone.utilities.LecternHandler;
-import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandler;
+import me.alexisevelyn.internetredstone.utilities.handlers.LecternHandlers;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
