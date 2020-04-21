@@ -55,23 +55,19 @@ public class Lecterns implements CommandExecutor {
             }
 
             if (args[0].toLowerCase().equals("setbroker")) {
-                setBroker(player);
+                setBroker(player, args);
             }
 
             if (args[0].toLowerCase().equals("setport")) {
-                setPort(player);
+                setPort(player, args);
             }
 
             if (args[0].toLowerCase().equals("settls")) {
-                setTLS(player);
+                setTLS(player, args);
             }
 
-            if (args[0].toLowerCase().equals("setusername")) {
-                setUserName(player);
-            }
-
-            if (args[0].toLowerCase().equals("setpassword")) {
-                setPassword(player);
+            if (args[0].toLowerCase().equals("setauth")) {
+                setSimpleAuth(player, args);
             }
         } else {
             listTrackersConsole(sender);
@@ -117,23 +113,53 @@ public class Lecterns implements CommandExecutor {
         }
     }
 
-    private void setBroker(Player player) {
+    private void setBroker(Player player, @NotNull String[] args) {
+        if (args.length == 2) {
+            getMain().getMySQLClient().setBroker(player.getUniqueId(), args[1]);
+
+//            handlers.getHandler().setBroker();
+//            handlers.getHandler().cleanup();
+//            handlers.registerHandler();
+        }
+
 
     }
 
-    private void setPort(Player player) {
+    private void setPort(Player player, @NotNull String[] args) {
+        if (args.length == 2) {
+            getMain().getMySQLClient().setPort(player.getUniqueId(), Integer.valueOf(args[1]));
+
+//            handlers.getHandler().setBroker();
+//            handlers.getHandler().cleanup();
+//            handlers.registerHandler();
+        }
+
 
     }
 
-    private void setTLS(Player player) {
+    private void setTLS(Player player, @NotNull String[] args) {
+        if (args.length == 2) {
+            getMain().getMySQLClient().setTLS(player.getUniqueId(), Boolean.valueOf(args[1]));
+
+//            handlers.getHandler().setBroker();
+//            handlers.getHandler().cleanup();
+//            handlers.registerHandler();
+        }
+
 
     }
 
-    private void setUserName(Player player) {
+    private void setSimpleAuth(Player player, @NotNull String[] args) {
+        if (args.length >= 2) {
+            getMain().getMySQLClient().setSimpleAuth(player.getUniqueId(),
+                    args[1],
+                    args[2]);
 
-    }
+//            handlers.getHandler().setBroker();
+//            handlers.getHandler().cleanup();
+//            handlers.registerHandler();
+        }
 
-    private void setPassword(Player player) {
 
     }
 

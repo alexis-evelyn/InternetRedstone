@@ -9,6 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.sql.*;
@@ -440,5 +442,20 @@ public class MySQLClient {
         preparedStatement.setString("locale", locale);
 
         return preparedStatement.executeUpdate() > 0;
+    }
+
+    public void setBroker(UUID player, @NotNull String broker) {
+    }
+
+    public void setPort(UUID player, Integer port) {
+
+    }
+
+    public void setTLS(UUID player, Boolean tls) {
+
+    }
+
+    public void setSimpleAuth(UUID player, @NotNull String username, @Nullable String password) {
+
     }
 }
