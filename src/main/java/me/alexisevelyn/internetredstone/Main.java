@@ -20,7 +20,6 @@ import java.util.Objects;
 
 public class Main extends JavaPlugin {
     private LecternHandlers lecternHandlers;
-    private PlayerHandlers playerHandlers;
 
     private Configuration config;
     private MySQLClient client;
@@ -52,7 +51,7 @@ public class Main extends JavaPlugin {
         lecternHandlers = new LecternHandlers(this);
 
         // Register Player Handlers Class
-        playerHandlers = new PlayerHandlers(this);
+        PlayerHandlers playerHandlers = new PlayerHandlers(this);
 
         // Register Bukkit Event Listeners
         getServer().getPluginManager().registerEvents(new RedstoneUpdate(lecternHandlers), this);

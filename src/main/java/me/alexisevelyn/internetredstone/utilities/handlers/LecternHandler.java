@@ -25,7 +25,6 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
@@ -34,10 +33,7 @@ import org.hashids.Hashids;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -46,17 +42,11 @@ public class LecternHandler extends LecternTracker {
     // Used to store server's translation
     private Translator translator;
 
-    // Player Settings
-    private PlayerSettings playerSettings;
-
     // Settings for MQTT Client
     private MQTTSettings mqttSettings;
 
     // MySQL Client
     private MySQLClient mySQLClient;
-
-    // Hash IDS
-    private Hashids hashids;
 
     public LecternHandler(@NotNull Main main, Location location, PlayerSettings player) {
         // This is to be called on player registration
@@ -65,28 +55,50 @@ public class LecternHandler extends LecternTracker {
         setPlayer(player);
 
         translator = main.getServerTranslator();
-        playerSettings = player;
         mqttSettings = player.getMqttSettings();
         mySQLClient = main.getMySQLClient();
 
         // Grab Hash From Config Or If Failed, Generate One Randomly
-        hashids = new Hashids(getMain().getConfiguration().getConfig().getString("lectern.id-hash", UUID.randomUUID().toString()));
+        setHashids(new Hashids(getMain().getConfiguration().getConfig().getString("lectern.id-hash", UUID.randomUUID().toString())));
 
         try {
-            ArrayList<MqttTopicImpl> topics = loadLecternProperties();
+            String server_name = getMain().getConfiguration().getConfig().getString("server-name");
+
+            // List of Topics to Subscribe To
+            mqttSettings.addTopic(server_name + "/" + getPlayer().getUUID() + "/" + getLecternID()); // Topic based on player's uuid
+            mqttSettings.setLWT(server_name + "/" + getPlayer().getUUID() + "/" + getLecternID(), player.getTranslator().getString("lwt_payload")); // Set Last Will and Testament
+
+            // Get Player's Name if Possible, Otherwise, Just Stick With UUID
+            // This should work regardless if the player is online or not, so long as we have seen them before.
+            OfflinePlayer playerObject = Bukkit.getOfflinePlayer(getPlayer().getUUID());
+
+            // Make sure to not set the ign topic to "null"
+            if (StringUtils.isNotBlank(playerObject.getName())) {
+                mqttSettings.addTopic(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
+            }
+
+            // Client With Username/Password (TODO: Test if Works With Null Values)
+            setClient(new MQTTClient(mqttSettings));
 
             /* Subscribe to Topics through ArrayList method
              *
              * NOTE: For those wondering, why use thenAccept, it's to force the subscription to wait until a connection has been established.
              */
             getClient().getConnection()
-                    .thenAccept(read -> getClient().subscribe(topics, callback))
+                    .thenAccept(read -> getClient().subscribe(callback))
                     .thenAccept(mysql -> addDatabaseEntry());
         } catch (ConnectionFailedException | ConnectionClosedException | Mqtt5ConnAckException exception) {
             Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("mqtt_failed_connection"));
             Logger.printException(exception);
+
+            // TODO: Shut down this lectern without unregistering it from database
         } catch (MqttClientStateException exception) {
             Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("mqtt_already_connecting"));
+        } catch (SQLException exception) {
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_registry_sql"));
+            Logger.printException(exception);
+
+            // TODO: Shut down this lectern without unregistering it from database
         }
     }
 
@@ -101,70 +113,6 @@ public class LecternHandler extends LecternTracker {
         for (MqttTopicImpl topic : mqttSettings.getTopics()) {
             getClient().sendMessage(topic, payload);
         }
-    }
-
-    private ArrayList<MqttTopicImpl> loadLecternProperties() throws SQLException {
-        lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
-
-        if (lecternData != null && lecternData.next()) {
-            setLecternID(lecternData.getString("lecternID"));
-            setLastKnownPower(lecternData.getInt("lastKnownRedstoneSignal"));
-        }
-
-        // Checks if String Was Previously Set Because Of MySQL Data
-        // Attempt to retrieve id from database, or if failed, then generate by other means
-        if (StringUtils.isBlank(getLecternID())) {
-            // Temporary Means of Generating Semi-Unique IDs for Testing
-            int tries = getMain().getConfiguration().getConfig().getInt("lectern.generate-short-id-tries", 3);
-            int maxShortID = getMain().getConfiguration().getConfig().getInt("lectern.max-short-id", 10000);
-            boolean success = false;
-
-            SecureRandom random = new SecureRandom();
-            int chosenID;
-            for (int x = 0; x <= tries; x++) {
-                // Generate a Random Integer For Checking Against Database
-                chosenID = random.nextInt(maxShortID);
-
-                try {
-                    // If random integer is not being used, use it, otherwise try again
-                    if (!mySQLClient.isLecternIDUsed(String.valueOf(chosenID))) {
-                        setLecternID(hashids.encode(chosenID));
-                        success = true;
-
-                        break;
-                    }
-                } catch (SQLException exception) {
-                    // Failed to check against database, reverting to uuid method of id generation
-                    Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_check_id_sql_exception"));
-                    Logger.printException(exception);
-
-                    break;
-                }
-            }
-
-            // If failed to find a short and sweet id for the lectern,
-            // then just generate a Universally Unique Identifier
-            if (!success) {
-                setLecternID(UUID.randomUUID().toString());
-            }
-        }
-
-        String server_name = config.getString("server-name");
-
-        // List of Topics to Subscribe To
-        mqttSettings.addTopic(server_name + "/" + player + "/" + getLecternID()); // Topic based on player's uuid
-
-        // Get Player's Name if Possible, Otherwise, Just Stick With UUID
-        // This should work regardless if the player is online or not, so long as we have seen them before.
-        OfflinePlayer playerObject = Bukkit.getOfflinePlayer(player);
-
-        // Make sure to not set the ign topic to "null"
-        if (StringUtils.isNotBlank(playerObject.getName())) {
-            mqttSettings.addTopic(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
-        }
-
-        // Client With Username/Password (TODO: Test if Works With Null Values)
-        new MQTTClient(mqttSettings);
     }
 
     private void addDatabaseEntry() {

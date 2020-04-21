@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
@@ -61,16 +62,21 @@ public class Lecterns implements CommandExecutor {
                     + translator.getString("command_lecterns_no_registered_lecterns"));
         }
 
-        for (Location location : trackerMap.keySet()) {
-            sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
-                    + translator.getString("command_lecterns_lectern")
-                    + ChatColor.DARK_GREEN + ChatColor.BOLD
-                    + location.getWorld().getName() + " "
-                    + Logger.getFormattedLocation(location)
+        try {
+            for (Location location : trackerMap.keySet()) {
+                sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                        + translator.getString("command_lecterns_lectern")
+                        + ChatColor.DARK_GREEN + ChatColor.BOLD
+                        + location.getWorld().getName() + " "
+                        + Logger.getFormattedLocation(location)
 
-                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
-                    + " - "
-                    + trackerMap.get(location).getLecternID());
+                        + ChatColor.DARK_PURPLE + ChatColor.BOLD
+                        + " - "
+                        + trackerMap.get(location).getLecternID());
+            }
+        } catch (SQLException exception) {
+            Logger.severe(translator.getString("command_lecterns_sqlexception"));
+            Logger.printException(exception);
         }
     }
 }

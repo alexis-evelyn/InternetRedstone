@@ -67,9 +67,13 @@ public class MQTTClient {
                 .send());
     }
 
-    // Simple method to subscribe to topics with default settings
     @SuppressWarnings("UnusedReturnValue")
-    public CompletableFuture<Mqtt5SubAck> subscribe(ArrayList<MqttTopicImpl> topic_strings, Consumer<Mqtt5Publish> callback) {
+    public CompletableFuture<Mqtt5SubAck> subscribe(Consumer<Mqtt5Publish> callback) {
+        return subscribe(mqttSettings.getTopics(), callback);
+    }
+
+    // Simple method to subscribe to topics with default settings
+    private CompletableFuture<Mqtt5SubAck> subscribe(ArrayList<MqttTopicImpl> topic_strings, Consumer<Mqtt5Publish> callback) {
         ArrayList<MqttSubscription> subscriptionsList = new ArrayList<>();
         for (MqttTopicImpl topic_string : topic_strings) {
             subscriptionsList.add(new MqttSubscription(topic_string.filter(), mqttSettings.getQos(), mqttSettings.getNoLocal(), mqttSettings.getRetainHandling(), mqttSettings.getRetainMessage()));
