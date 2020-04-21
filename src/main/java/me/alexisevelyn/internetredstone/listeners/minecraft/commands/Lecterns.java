@@ -41,16 +41,37 @@ public class Lecterns implements CommandExecutor {
      */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (sender instanceof Player) {
-            if (args.length >= 1 && args[0].toLowerCase().equals("list")) {
-                listTrackersPlayer(sender, false);
+        if (sender instanceof Player && args.length >= 1) {
+            Player player = (Player) sender;
+            if (args[0].toLowerCase().equals("list")) {
+                listTrackersPlayer(player, false);
             }
 
-            if (args.length >= 1 && args[0].toLowerCase().equals("listall")) {
+            if (args[0].toLowerCase().equals("listall")) {
                 if (sender.hasPermission("internetredstone.admin.command.lecterns.listall"))
-                    listTrackersPlayer(sender, true);
+                    listTrackersPlayer(player, true);
                 else
-                    listTrackersPlayer(sender, false);
+                    listTrackersPlayer(player, false);
+            }
+
+            if (args[0].toLowerCase().equals("setbroker")) {
+                setBroker(player);
+            }
+
+            if (args[0].toLowerCase().equals("setport")) {
+                setPort(player);
+            }
+
+            if (args[0].toLowerCase().equals("settls")) {
+                setTLS(player);
+            }
+
+            if (args[0].toLowerCase().equals("setusername")) {
+                setUserName(player);
+            }
+
+            if (args[0].toLowerCase().equals("setpassword")) {
+                setPassword(player);
             }
         } else {
             listTrackersConsole(sender);
@@ -60,7 +81,7 @@ public class Lecterns implements CommandExecutor {
         return true;
     }
 
-    public void listTrackersConsole(CommandSender sender) {
+    private void listTrackersConsole(CommandSender sender) {
         Translator translator = main.getServerTranslator();
 
         ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
@@ -75,26 +96,45 @@ public class Lecterns implements CommandExecutor {
         }
     }
 
-    public void listTrackersPlayer(CommandSender sender, Boolean listAll) {
-        Translator translator = new Translator(((Player) sender).getLocale());
+    private void listTrackersPlayer(Player player, Boolean listAll) {
+        Translator translator = new Translator(player.getLocale());
 
         ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
 
         if (trackerMap.size() == 0) {
-            sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+            player.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
                     + translator.getString("command_lecterns_no_registered_lecterns"));
         }
 
         // TODO: Figure out how to efficiently pull out player's lecterns from list
         //  and figure out how to paginate the list!!!
 
-        Player player = (Player) sender;
         for (Location location : trackerMap.keySet()) {
             if (!trackerMap.get(location).getPlayer().equals(player.getUniqueId()) && !listAll)
                 continue;
 
-            sendLecternReply(sender, location, translator, trackerMap.get(location).getLecternID());
+            sendLecternReply(player, location, translator, trackerMap.get(location).getLecternID());
         }
+    }
+
+    private void setBroker(Player player) {
+
+    }
+
+    private void setPort(Player player) {
+
+    }
+
+    private void setTLS(Player player) {
+
+    }
+
+    private void setUserName(Player player) {
+
+    }
+
+    private void setPassword(Player player) {
+
     }
 
     private void sendLecternReply(CommandSender sender, Location location, Translator translator, String lecternID) {
