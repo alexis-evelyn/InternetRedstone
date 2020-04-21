@@ -25,6 +25,7 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lectern;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LecternInventory;
@@ -33,6 +34,7 @@ import org.hashids.Hashids;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.IllegalFormatException;
 import java.util.UUID;
@@ -55,18 +57,20 @@ public class LecternHandler extends LecternTracker {
         setPlayer(player);
 
         translator = main.getServerTranslator();
-        mqttSettings = player.getMqttSettings();
         mySQLClient = main.getMySQLClient();
 
+        // Load Player Settings
+        loadPlayerSettings();
+
         // Grab Hash From Config Or If Failed, Generate One Randomly
-        setHashids(new Hashids(getMain().getConfiguration().getConfig().getString("lectern.id-hash", UUID.randomUUID().toString())));
+        setHashIDs(new Hashids(getMain().getConfiguration().getConfig().getString("lectern.id-hash", UUID.randomUUID().toString())));
 
         try {
             String server_name = getMain().getConfiguration().getConfig().getString("server-name");
 
             // List of Topics to Subscribe To
-            mqttSettings.addTopic(server_name + "/" + getPlayer().getUUID() + "/" + getLecternID()); // Topic based on player's uuid
-            mqttSettings.setLWT(server_name + "/" + getPlayer().getUUID() + "/" + getLecternID(), player.getTranslator().getString("lwt_payload")); // Set Last Will and Testament
+            mqttSettings.addTopic(server_name + "/" + getPlayer().getUUID() + "/" + getLecternID(mySQLClient)); // Topic based on player's uuid
+            mqttSettings.setLWT(server_name + "/" + getPlayer().getUUID() + "/" + getLecternID(mySQLClient), "player.getTranslator().getString(\"lwt_payload\")"); // Set Last Will and Testament
 
             // Get Player's Name if Possible, Otherwise, Just Stick With UUID
             // This should work regardless if the player is online or not, so long as we have seen them before.
@@ -74,7 +78,7 @@ public class LecternHandler extends LecternTracker {
 
             // Make sure to not set the ign topic to "null"
             if (StringUtils.isNotBlank(playerObject.getName())) {
-                mqttSettings.addTopic(server_name + "/" + playerObject.getName() + "/" + getLecternID()); // Topic based on player's ign
+                mqttSettings.addTopic(server_name + "/" + playerObject.getName() + "/" + getLecternID(mySQLClient)); // Topic based on player's ign
             }
 
             // Client With Username/Password (TODO: Test if Works With Null Values)
@@ -99,6 +103,53 @@ public class LecternHandler extends LecternTracker {
             Logger.printException(exception);
 
             // TODO: Shut down this lectern without unregistering it from database
+        }
+    }
+
+    private void loadPlayerSettings() {
+        // This string will be read from Player's Config Or If None Provided, Server's Config
+        FileConfiguration config = getMain().getConfiguration().getConfig();
+
+        // Create MQTT Settings to Set
+        mqttSettings = new MQTTSettings();
+
+        // Connection Settings
+        mqttSettings.setBroker(config.getString("default.broker"));
+        mqttSettings.setPort(config.getInt("default.port", 1883));
+        mqttSettings.setTLS(config.getBoolean("default.tls", false));
+
+        // Authentication
+        mqttSettings.setSimpleAuth(config.getString("default.username", null),
+                config.getString("default.password", null));
+
+        // Determine if Should Send Retained Messages Or Not
+        mqttSettings.setRetainMessage(config.getBoolean("default.retain", true));
+
+        ResultSet playerData;
+        try {
+            playerData = mySQLClient.retrievePlayerDataIfExists(getPlayer().getUUID());
+            if (playerData != null && playerData.next()) {
+                if (StringUtils.isNotBlank(playerData.getString("broker")))
+                    mqttSettings.setBroker(playerData.getString("broker"));
+
+                // You have to read the result first before checking if it's null
+                int tempInt = playerData.getInt("port");
+                if (!playerData.wasNull())
+                    mqttSettings.setPort(tempInt);
+
+                if (StringUtils.isNotBlank(playerData.getString("username")))
+                    mqttSettings.setSimpleAuth(playerData.getString("username"), playerData.getString("password"));
+
+                // You have to read the result first before checking if it's null
+                boolean tempBool = playerData.getBoolean("tls");
+                if (!playerData.wasNull())
+                    mqttSettings.setTLS(tempBool);
+            }
+        } catch(SQLException exception) {
+            Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD +
+                    translator.getString("lectern_failed_database_retrieval"));
+
+            Logger.printException(exception);
         }
     }
 
@@ -132,7 +183,7 @@ public class LecternHandler extends LecternTracker {
                 else
                     mySQLClient.storeUserPreferences(null, null, null, getPlayer().getUUID(), null);
 
-                mySQLClient.registerLectern(getPlayer().getUUID(), getLocation(), getLecternID(), getLastKnownPower());
+                mySQLClient.registerLectern(getPlayer().getUUID(), getLocation(), getLecternID(mySQLClient), getLastKnownPower());
             } catch (SQLException exception) {
                 Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_add_entries_sql_exception"));
                 Logger.printException(exception);
@@ -197,7 +248,7 @@ public class LecternHandler extends LecternTracker {
 
                         // Update First Page In Book
                         // Must be performed before setting the page number!!!
-                        writeLastMessage(lectern, mqtt5Publish, powerLevel);
+//                        writeLastMessage(lectern, mqtt5Publish, powerLevel);
 
                         try {
                             validateBook(lectern);

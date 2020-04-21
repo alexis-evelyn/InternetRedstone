@@ -1,7 +1,5 @@
 package me.alexisevelyn.internetredstone.utilities.data;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.network.mqtt.MQTTClient;
 import org.apache.commons.lang.StringUtils;
@@ -15,13 +13,12 @@ import java.util.UUID;
 public abstract class LecternTracker extends Tracker {
     String lecternID;
     MQTTClient mqttClient;
-    MySQLClient mySQLClient;
 
     // Hash IDS
     Hashids hashids;
 
     // TODO: Better Organize This
-    public String getLecternID() throws SQLException {
+    public String getLecternID(MySQLClient mySQLClient) throws SQLException {
         ResultSet lecternData = mySQLClient.retrieveLecternDataIfExists(getLocation());
 
         if (lecternData != null && lecternData.next()) {
@@ -70,7 +67,7 @@ public abstract class LecternTracker extends Tracker {
         return mqttClient;
     }
 
-    public void setHashids(Hashids hashids) {
+    public void setHashIDs(Hashids hashids) {
         this.hashids = hashids;
     }
 }

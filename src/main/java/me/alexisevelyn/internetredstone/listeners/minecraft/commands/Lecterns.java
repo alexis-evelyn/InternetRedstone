@@ -72,7 +72,7 @@ public class Lecterns implements CommandExecutor {
 
                         + ChatColor.DARK_PURPLE + ChatColor.BOLD
                         + " - "
-                        + trackerMap.get(location).getLecternID());
+                        + trackerMap.get(location).getLecternID(main.getMySQLClient()));
             }
         } catch (SQLException exception) {
             Logger.severe(translator.getString("command_lecterns_sqlexception"));
