@@ -29,6 +29,7 @@ permissions:
     description: Access to all admin permissions
     children:
       internetredstone.admin.lecterns: true
+      internetredstone.admin.command.lecterns.listall: true
     default: op
   internetredstone.player:
     description: Access to all player permissions

@@ -3,6 +3,7 @@ package me.alexisevelyn.internetredstone;
 import io.reactivex.plugins.RxJavaPlugins;
 import me.alexisevelyn.internetredstone.database.mysql.MySQLClient;
 import me.alexisevelyn.internetredstone.listeners.minecraft.*;
+import me.alexisevelyn.internetredstone.listeners.minecraft.commands.InternetRedstone;
 import me.alexisevelyn.internetredstone.listeners.minecraft.commands.Lecterns;
 import me.alexisevelyn.internetredstone.settings.Configuration;
 import me.alexisevelyn.internetredstone.utilities.LecternHandlers;
@@ -66,7 +67,7 @@ public class Main extends JavaPlugin {
             Objects.requireNonNull(lecterns).setExecutor(new Lecterns(handlers, this));
 
             PluginCommand internetredstone = getCommand("internetredstone");
-            Objects.requireNonNull(internetredstone).setExecutor(new Lecterns(handlers, this));
+            Objects.requireNonNull(internetredstone).setExecutor(new InternetRedstone(handlers, this));
         } catch (NullPointerException exception) {
             Logger.printException(exception);
         }

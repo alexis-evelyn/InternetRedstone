@@ -41,19 +41,27 @@ public class Lecterns implements CommandExecutor {
      */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        listTrackers(sender);
+        if (sender instanceof Player) {
+            if (args.length >= 1 && args[0].toLowerCase().equals("list")) {
+                listTrackersPlayer(sender, false);
+            }
+
+            if (args.length >= 1 && args[0].toLowerCase().equals("listall")) {
+                if (sender.hasPermission("internetredstone.admin.command.lecterns.listall"))
+                    listTrackersPlayer(sender, true);
+                else
+                    listTrackersPlayer(sender, false);
+            }
+        } else {
+            listTrackersConsole(sender);
+        }
+
 
         return true;
     }
 
-    public void listTrackers(CommandSender sender) {
-        Translator translator;
-
-        if (sender instanceof Player) {
-            translator = new Translator(((Player) sender).getLocale());
-        } else {
-            translator = main.getServerTranslator();
-        }
+    public void listTrackersConsole(CommandSender sender) {
+        Translator translator = main.getServerTranslator();
 
         ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
 
@@ -63,15 +71,41 @@ public class Lecterns implements CommandExecutor {
         }
 
         for (Location location : trackerMap.keySet()) {
-            sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
-                    + translator.getString("command_lecterns_lectern")
-                    + ChatColor.DARK_GREEN + ChatColor.BOLD
-                    + location.getWorld().getName() + " "
-                    + Logger.getFormattedLocation(location)
-
-                    + ChatColor.DARK_PURPLE + ChatColor.BOLD
-                    + " - "
-                    + trackerMap.get(location).getLecternID());
+            sendLecternReply(sender, location, translator, trackerMap.get(location).getLecternID());
         }
+    }
+
+    public void listTrackersPlayer(CommandSender sender, Boolean listAll) {
+        Translator translator = new Translator(((Player) sender).getLocale());
+
+        ConcurrentHashMap<Location, LecternHandler> trackerMap = handlers.getHandlers();
+
+        if (trackerMap.size() == 0) {
+            sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("command_lecterns_no_registered_lecterns"));
+        }
+
+        // TODO: Figure out how to efficiently pull out player's lecterns from list
+        //  and figure out how to paginate the list!!!
+
+        Player player = (Player) sender;
+        for (Location location : trackerMap.keySet()) {
+            if (!trackerMap.get(location).getPlayer().equals(player.getUniqueId()) && !listAll)
+                continue;
+
+            sendLecternReply(sender, location, translator, trackerMap.get(location).getLecternID());
+        }
+    }
+
+    private void sendLecternReply(CommandSender sender, Location location, Translator translator, String lecternID) {
+        sender.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                + translator.getString("command_lecterns_lectern")
+                + ChatColor.DARK_GREEN + ChatColor.BOLD
+                + location.getWorld().getName() + " "
+                + Logger.getFormattedLocation(location)
+
+                + ChatColor.DARK_PURPLE + ChatColor.BOLD
+                + " - "
+                + lecternID);
     }
 }
