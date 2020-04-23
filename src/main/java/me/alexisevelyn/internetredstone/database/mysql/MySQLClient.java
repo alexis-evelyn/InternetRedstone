@@ -444,18 +444,77 @@ public class MySQLClient {
         return preparedStatement.executeUpdate() > 0;
     }
 
-    public void setBroker(UUID player, @NotNull String broker) {
+    @SuppressWarnings("UnusedReturnValue")
+    public Boolean setBroker(UUID player, @NotNull String broker) throws SQLException {
+        if (!isPlayerInDatabase(player))
+            return false;
+
+        String query = "UPDATE Players"
+                + " SET broker = :broker"
+                + " WHERE `uuid` = :uuid LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+        preparedStatement.setString("broker", broker);
+
+        return preparedStatement.executeUpdate() > 0;
     }
 
-    public void setPort(UUID player, Integer port) {
+    @SuppressWarnings("UnusedReturnValue")
+    public Boolean setPort(UUID player, Integer port) throws SQLException {
+        if (!isPlayerInDatabase(player))
+            return false;
 
+        String query = "UPDATE Players"
+                + " SET port = :port"
+                + " WHERE `uuid` = :uuid LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+        preparedStatement.setInt("port", port);
+
+        return preparedStatement.executeUpdate() > 0;
     }
 
-    public void setTLS(UUID player, Boolean tls) {
+    @SuppressWarnings("UnusedReturnValue")
+    public Boolean setTLS(UUID player, Boolean tls) throws SQLException {
+        if (!isPlayerInDatabase(player))
+            return false;
 
+        String query = "UPDATE Players"
+                + " SET tls = :tls"
+                + " WHERE `uuid` = :uuid LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+        preparedStatement.setBoolean("tls", tls);
+
+        return preparedStatement.executeUpdate() > 0;
     }
 
-    public void setSimpleAuth(UUID player, @NotNull String username, @Nullable String password) {
+    @SuppressWarnings("UnusedReturnValue")
+    public Boolean setSimpleAuth(UUID player, @NotNull String username, @Nullable String password) throws SQLException {
+        if (!isPlayerInDatabase(player))
+            return false;
 
+        String query = "UPDATE Players"
+                + " SET username = :username"
+                + " password = :password"
+                + " WHERE `uuid` = :uuid LIMIT 1;";
+
+        NamedParameterPreparedStatement preparedStatement = NamedParameterPreparedStatement
+                .createNamedParameterPreparedStatement(connection, query);
+
+        preparedStatement.setString("uuid", player.toString());
+        preparedStatement.setString("username", username);
+        preparedStatement.setString("password", password);
+
+        return preparedStatement.executeUpdate() > 0;
     }
 }

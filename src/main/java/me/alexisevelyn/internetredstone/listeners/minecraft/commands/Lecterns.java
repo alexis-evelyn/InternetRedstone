@@ -11,10 +11,10 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
@@ -41,6 +41,7 @@ public class Lecterns implements CommandExecutor {
      */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        // TODO: Cleanup Code!!!
         if (sender instanceof Player && args.length >= 1) {
             Player player = (Player) sender;
             if (args[0].toLowerCase().equals("list")) {
@@ -72,7 +73,6 @@ public class Lecterns implements CommandExecutor {
         } else {
             listTrackersConsole(sender);
         }
-
 
         return true;
     }
@@ -115,7 +115,11 @@ public class Lecterns implements CommandExecutor {
 
     private void setBroker(Player player, @NotNull String[] args) {
         if (args.length == 2) {
-            getMain().getMySQLClient().setBroker(player.getUniqueId(), args[1]);
+            try {
+                getMain().getMySQLClient().setBroker(player.getUniqueId(), args[1]);
+            } catch (SQLException exception) {
+                // Log Exception and Alert User
+            }
 
 //            handlers.getHandler().setBroker();
 //            handlers.getHandler().cleanup();
@@ -127,7 +131,11 @@ public class Lecterns implements CommandExecutor {
 
     private void setPort(Player player, @NotNull String[] args) {
         if (args.length == 2) {
-            getMain().getMySQLClient().setPort(player.getUniqueId(), Integer.valueOf(args[1]));
+            try {
+                getMain().getMySQLClient().setPort(player.getUniqueId(), Integer.valueOf(args[1]));
+            } catch (SQLException exception) {
+                // Log Exception and Alert User
+            }
 
 //            handlers.getHandler().setBroker();
 //            handlers.getHandler().cleanup();
@@ -139,7 +147,11 @@ public class Lecterns implements CommandExecutor {
 
     private void setTLS(Player player, @NotNull String[] args) {
         if (args.length == 2) {
-            getMain().getMySQLClient().setTLS(player.getUniqueId(), Boolean.valueOf(args[1]));
+            try {
+                getMain().getMySQLClient().setTLS(player.getUniqueId(), Boolean.valueOf(args[1]));
+            } catch (SQLException exception) {
+                // Log Exception and Alert User
+            }
 
 //            handlers.getHandler().setBroker();
 //            handlers.getHandler().cleanup();
@@ -151,9 +163,13 @@ public class Lecterns implements CommandExecutor {
 
     private void setSimpleAuth(Player player, @NotNull String[] args) {
         if (args.length >= 2) {
-            getMain().getMySQLClient().setSimpleAuth(player.getUniqueId(),
-                    args[1],
-                    args[2]);
+            try {
+                getMain().getMySQLClient().setSimpleAuth(player.getUniqueId(),
+                        args[1],
+                        args[2]);
+            } catch (SQLException exception) {
+                // Log Exception and Alert User
+            }
 
 //            handlers.getHandler().setBroker();
 //            handlers.getHandler().cleanup();
