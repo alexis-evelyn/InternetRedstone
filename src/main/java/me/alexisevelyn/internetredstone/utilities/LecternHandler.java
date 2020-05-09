@@ -79,12 +79,28 @@ public class LecternHandler extends LecternTracker {
              */
             getClient().getConnection()
                     .thenAccept(read -> getClient().subscribe(topics, callback))
-                    .thenAccept(mysql -> addDatabaseEntry());
+                    .thenAccept(mysql -> addDatabaseEntry())
+                    .thenAccept(notify -> notifyPlayerForRegistry(topics));
         } catch (ConnectionFailedException | ConnectionClosedException | Mqtt5ConnAckException exception) {
             Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("mqtt_failed_connection"));
             Logger.printException(exception);
         } catch (MqttClientStateException exception) {
             Logger.warning(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("mqtt_already_connecting"));
+        }
+    }
+
+    public void notifyPlayerForRegistry(ArrayList<String> topics) {
+        Player player = Bukkit.getPlayer(getPlayer());
+
+        if (player != null) {
+            player.sendMessage(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD
+                    + translator.getString("lectern_notify_registration"));
+
+            for(String topic : topics) {
+                // Loop Through Both Topics
+                player.sendMessage(String.valueOf(ChatColor.BLUE) + ChatColor.BOLD
+                        + topic);
+            }
         }
     }
 
@@ -261,6 +277,7 @@ public class LecternHandler extends LecternTracker {
                     mySQLClient.storeUserPreferences(null, null, null, getPlayer(), null);
 
                 mySQLClient.registerLectern(getPlayer(), getLocation(), getLecternID(), getLastKnownPower());
+
             } catch (SQLException exception) {
                 Logger.severe(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + translator.getString("lectern_failed_add_entries_sql_exception"));
                 Logger.printException(exception);

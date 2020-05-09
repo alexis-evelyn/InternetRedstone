@@ -55,21 +55,23 @@ public class Lecterns implements CommandExecutor {
                     listTrackersPlayer(player, false);
             }
 
-            if (args[0].toLowerCase().equals("setbroker")) {
-                setBroker(player, args);
-            }
-
-            if (args[0].toLowerCase().equals("setport")) {
-                setPort(player, args);
-            }
-
-            if (args[0].toLowerCase().equals("settls")) {
-                setTLS(player, args);
-            }
-
-            if (args[0].toLowerCase().equals("setauth")) {
-                setSimpleAuth(player, args);
-            }
+            // Disabled due to not being completely implemented
+            // and also some concerns about storing authentication details
+//            if (args[0].toLowerCase().equals("setbroker")) {
+//                setBroker(player, args);
+//            }
+//
+//            if (args[0].toLowerCase().equals("setport")) {
+//                setPort(player, args);
+//            }
+//
+//            if (args[0].toLowerCase().equals("settls")) {
+//                setTLS(player, args);
+//            }
+//
+//            if (args[0].toLowerCase().equals("setauth")) {
+//                setSimpleAuth(player, args);
+//            }
         } else {
             listTrackersConsole(sender);
         }

@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.IllegalFormatException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LecternHandlers {
     // Main class used to get synchronous execution
@@ -28,11 +30,17 @@ public class LecternHandlers {
     // List of Tracker Objects
     final private ConcurrentHashMap<Location, LecternHandler> handlers;
 
+    // ExecutorService to Asynchronously Load Handlers
+    final private ExecutorService exec;
+
     public LecternHandlers(Main main) {
         this.main = main;
         translator = main.getServerTranslator();
 
         handlers = new ConcurrentHashMap<>();
+
+        // Load Fixed Thread Pool Limited To Number of Processors - Including Cores
+        exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
     public void registerSavedHandlers() {
@@ -87,6 +95,10 @@ public class LecternHandlers {
 
             throw new DuplicateObjectException(String.valueOf(ChatColor.GOLD) + ChatColor.BOLD + warning);
         }
+
+        // TODO: Make Loading Lecterns Asynchronous
+//        Object handler = null;
+//        exec.submit((Runnable) new LecternHandler(main, location, player), handler);
 
         LecternHandler handler = new LecternHandler(main, location, player);
         handlers.put(location, handler);
@@ -161,5 +173,8 @@ public class LecternHandlers {
             //noinspection UnusedAssignment
             tracker = null;
         }
+
+        // Shutdown ExecutorService when it's finished!!!
+        exec.shutdown();
     }
 }

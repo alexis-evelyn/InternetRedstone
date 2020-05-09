@@ -59,8 +59,8 @@ public class Configuration {
         // Max Integer To Try To Use For Short ID Generation
         config.addDefault("lectern.max-short-id", 10000);
 
-        // Used to Lazily Chunk Load For Processing Redstone and Other Block Updates, But Not Entities
-        config.addDefault("lectern.lazy-chunk-load", true);
+        // (TODO: Implement) Used to Lazily Chunk Load For Processing Redstone and Other Block Updates, But Not Entities
+//        config.addDefault("lectern.lazy-chunk-load", true);
 
         // Retrieve Hash ID Or Generate A New One On Failure
         try {
